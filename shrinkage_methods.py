@@ -3,8 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 from sklearn import linear_model
-from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.metrics import mean_squared_error
+
 
 data=pd.read_csv('prostate.csv',sep=',',engine='python',index_col='train')
 
@@ -107,3 +108,23 @@ reg.fit(predictorTrain_std,lpsaTrain)
 print('best_alpha: ',reg.alpha_)
 print('coefficients: ', reg.coef_)
 print('R^2: ',reg.score(predictorTrain_std,lpsaTrain))
+
+print('\n')
+
+#LASSO regression on train set
+
+reg=linear_model.Lasso(alpha=0.1)
+reg.fit(predictorTrain_std,lpsaTrain)
+print('Lasso regression coefficients are:', reg.coef_)
+print('Lasso regression intercept is:', reg.intercept_)
+print('Lasso regression R^2 is:', reg.score(predictorTrain_std,lpsaTrain))
+
+#Plot Lasso coefficients as a function of the regularization parameter
+alphas_lasso, coefs_lasso, _=linear_model.lasso_path(predictorTrain_std,lpsaTrain)
+
+for k in range(len(reg.coef_)):
+    plt.plot(alphas_lasso,coefs_lasso[k,:],linestyle='--')
+    plt.legend()
+
+plt.show()
+    
