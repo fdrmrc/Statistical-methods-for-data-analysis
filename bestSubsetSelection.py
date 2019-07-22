@@ -51,7 +51,7 @@ for k in range (1,dataTrain.shape[1]+1):
     for subset in itertools.combinations(range(dataTrain.shape[1]),k):
         subset=list(subset)
         linreg=LinearRegression(normalize=True).fit(predictorTrain_std.iloc[:,subset],lpsaTrain)
-        linreg_pred=linreg.predict(dataTrain.iloc[:,subset]) #prediction using train set
+        linreg_pred=linreg.predict(predictorTrain_std.iloc[:,subset]) #prediction using train set
         linreg_mae = np.mean(np.abs(lpsaTrain - linreg_pred))
         RSS=np.sum((lpsaTrain -linreg_pred)**2)
         Rsquare=linreg.score(predictorTrain_std.iloc[:,subset] ,lpsaTrain)
@@ -65,9 +65,9 @@ for k in range (1,dataTrain.shape[1]+1):
         
 results_sort=results.sort_values('MAE')
 
-results_sort_RSS=results.sort_values('RSS') #equals to the sort above
+#results_sort_RSS=results.sort_values('RSS') #equals to the sort above
 
-best_subset_model=LinearRegression(normalize=True).fit(dataTrain.iloc[:,results_sort['features'].iloc[0]],lpsaTrain) #fit(X_best,y_train)
+best_subset_model=LinearRegression(normalize=True).fit(predictorTrain_std.iloc[:,results_sort['features'].iloc[0]],lpsaTrain) #fit(X_best,y_train)
 best_subset_coefs=best_subset_model.coef_
 
 print('Best subset Selection RSS : {}'.format(np.round(results_sort['RSS'].iloc[0],3)))
@@ -99,18 +99,18 @@ plt.show()
 
 #FORWARD STEPWISE SELECTION
 remaining_features=list(dataTrain.columns.values) #features to be included
-features=[] #start with empy model
+features=[] #start with empty model
 features_list=dict() #copy here features used
 RSS_list=[] 
 RSquare_list=[]
-for i in range (1,dataTrain.shape[1] + 1):
+for i in range (1,dataTrain.shape[1]+1):
     best_RSS=np.inf
     
     for combo in itertools.combinations(remaining_features,1):
-        reg=LinearRegression().fit(dataTrain[list(combo) + features],lpsaTrain)
-        pred=reg.predict(dataTrain[list(combo) + features]) #prediction to compute RSS
+        reg=LinearRegression().fit(predictorTrain_std[list(combo) + features],lpsaTrain)
+        pred=reg.predict(predictorTrain_std[list(combo) + features]) #prediction to compute RSS
         RSS=np.sum((lpsaTrain -pred)**2)
-        Rsquare=reg.score(dataTrain[list(combo) + features],lpsaTrain)
+        Rsquare=reg.score(predictorTrain_std[list(combo) + features],lpsaTrain)
         
         if RSS<best_RSS:
             best_RSS=RSS
@@ -133,5 +133,49 @@ print('Forward stepwise selection R^2 : {}'.format(np.round(best_Rsquare,3)))
 plt.scatter(np.arange(1,dataTrain.shape[1] + 1),RSS_list)
 plt.xlabel('k: subset size')
 plt.ylabel('RSS')
-plt.legend('RSS')
+plt.legend(' RSS ')
+plt.title('RSS - Forward stepwise selection')
 plt.show()
+
+
+#BACKWARD STEPWISE SELECTION
+features=list(dataTrain.columns.values) #start with full model
+remaining_features=[]
+features_list=dict() #copy here featured used
+RSS_list=[] 
+RSquare_list=[]
+for i in range (1,dataTrain.shape[1]+1):
+    best_RSS=np.inf
+    
+    for combo in itertools.combinations(features,1):
+        reg=LinearRegression().fit(predictorTrain_std[list(combo) + remaining_features],lpsaTrain)
+        pred=reg.predict(predictorTrain_std[list(combo) + remaining_features]) #prediction to compute RSS
+        RSS=np.sum((lpsaTrain -pred)**2)
+        Rsquare=reg.score(predictorTrain_std[list(combo) + remaining_features],lpsaTrain)
+        
+        if RSS<best_RSS:
+            best_RSS=RSS
+            best_feature=combo[0] #choose current combo
+            best_Rsquare=Rsquare
+        
+    features.remove(best_feature) #remove the variable that minimizes the RSS
+    remaining_features.append(best_feature)
+    
+    #save for the plot
+    RSS_list.append(best_RSS)
+    RSquare_list.append(best_Rsquare)
+    features_list[i]=features.copy()
+    
+print('Backward stepwise selection RSS : {}'.format(np.round(best_RSS,3)))
+print('Backward stepwise selection R^2 : {}'.format(np.round(best_Rsquare,3)))
+
+#plot: x=subset size, y=RSS
+plt.scatter(np.arange(1,dataTrain.shape[1] + 1),RSS_list)
+plt.xlabel('k: subset size')
+plt.ylabel('RSS')
+plt.legend(' RSS ')
+plt.title('RSS - Backward stepwise selection')
+plt.show()
+
+
+
