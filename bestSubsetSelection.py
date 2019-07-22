@@ -63,9 +63,9 @@ for k in range (1,dataTrain.shape[1]+1):
 
 #sort values
         
-results_sort=results.sort_values('MAE')
+#results_sort=results.sort_values('MAE')
 
-#results_sort_RSS=results.sort_values('RSS') #equals to the sort above
+results_sort=results.sort_values('RSS')
 
 best_subset_model=LinearRegression(normalize=True).fit(predictorTrain_std.iloc[:,results_sort['features'].iloc[0]],lpsaTrain) #fit(X_best,y_train)
 best_subset_coefs=best_subset_model.coef_
@@ -176,6 +176,3 @@ plt.ylabel('RSS')
 plt.legend(' RSS ')
 plt.title('RSS - Backward stepwise selection')
 plt.show()
-
-
-
