@@ -50,9 +50,10 @@ print('Ridge regression coefficients are:', reg.coef_)
 print('Ridge regression intercept is:', reg.intercept_)
 print('Ridge regression R^2 is:', reg.score(predictorTrain_std,lpsaTrain))
 
+print('\n')
 #plot Ridge coefficients as a function of the regularization parameters
 
-alphas=np.logspace(-1,4,200) #vector of regularization parameters
+alphas=np.logspace(-1,4,200) #vector of regularization parameters. See documentation for logspace (goes from 1e-1 to 1e4 with 200 sample points)
 coefs=list()
 for i in range(len(alphas)):
     reg=linear_model.Ridge(alpha=alphas[i])
@@ -71,7 +72,8 @@ plt.show()
 #find the best regularization parameter by cross-validation
 reg = linear_model.RidgeCV(alphas=np.logspace(-1,4,200),store_cv_values=True)
 reg.fit(predictorTrain_std,lpsaTrain)
-print(reg.cv_values_.shape)
+print('Dimensions of cv_values: ', reg.cv_values_.shape)
+print('best alpha: ', reg.alpha_)
 
 #Compute the mean by column of cv_values_: I obtain the average cross-validation error for each alpha. This is the value that has to be minimized 
 colMean=np.zeros([reg.cv_values_.shape[1],1])
@@ -80,4 +82,28 @@ for i in range(reg.cv_values_.shape[1]):
 
 #Plot the leave-one-out cross validation error
 plt.plot(alphas,colMean)
+plt.xlabel('reg. parameters')
+plt.ylabel('Average cross validation error')
 plt.show()
+
+#Identify the minimum leave-one-out cross-validation error and the related alpha, model coefficients and performance
+minAv=np.min(colMean)
+minIndex=np.where(colMean==minAv) #tell me where colMean has its minimum
+best_alpha=alphas[int(minIndex[0])] #casted in order to pass the index
+reg=linear_model.Ridge(alpha=best_alpha)
+reg.fit(predictorTrain_std,lpsaTrain)
+print('best_alpha by hand: ', best_alpha)
+
+print('New Ridge regression coefficients are:', reg.coef_)
+print('New Ridge regression intercept is:', reg.intercept_)
+print('New Ridge regression R^2 is:', reg.score(predictorTrain_std,lpsaTrain))
+
+
+print('\n')
+#Identify the minimum 10-folds cross-validation error and the related alpha, model coefficients and performance
+
+reg = linear_model.RidgeCV(alphas=np.logspace(-1,4,200),cv=10)
+reg.fit(predictorTrain_std,lpsaTrain)
+print('best_alpha: ',reg.alpha_)
+print('coefficients: ', reg.coef_)
+print('R^2: ',reg.score(predictorTrain_std,lpsaTrain))
