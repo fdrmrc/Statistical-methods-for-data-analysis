@@ -97,7 +97,10 @@ plt.plot(results.iloc[:,4],results.iloc[:,-1],color='green',linestyle=':')
 plt.show()
 
 
-#FORWARD STEPWISE SELECTION
+#FORWARD STEPWISE SELECTION:
+#Forward Stepwise begins with a model containing no predictors, and then adds predictors to the model, one at the time.
+#At each step, the variable that gives the greatest additional improvement to the fit is added to the model.
+
 remaining_features=list(dataTrain.columns.values) #features to be included
 features=[] #start with empty model
 features_list=dict() #copy here features used
