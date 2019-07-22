@@ -70,8 +70,8 @@ results_sort_RSS=results.sort_values('RSS') #equals to the sort above
 best_subset_model=LinearRegression(normalize=True).fit(dataTrain.iloc[:,results_sort['features'].iloc[0]],lpsaTrain) #fit(X_best,y_train)
 best_subset_coefs=best_subset_model.coef_
 
-print('Best subset Regression RSS : {}'.format(np.round(results_sort['RSS'].iloc[0],3)))
-print('Best subset Regression R^2 : {}'.format(np.round(results_sort['R^2'].iloc[0],3)))
+print('Best subset Selection RSS : {}'.format(np.round(results_sort['RSS'].iloc[0],3)))
+print('Best subset Selection R^2 : {}'.format(np.round(results_sort['R^2'].iloc[0],3)))
 
 
 #Plot of subset size vs. RSS
@@ -94,4 +94,44 @@ plt.title('R^2 - Best subset selection')
 plt.legend()
 plt.plot(results.iloc[:,4],results.iloc[:,-1],color='green',linestyle=':')
 
+plt.show()
+
+
+#FORWARD STEPWISE SELECTION
+remaining_features=list(dataTrain.columns.values) #features to be included
+features=[] #start with empy model
+features_list=dict() #copy here features used
+RSS_list=[] 
+RSquare_list=[]
+for i in range (1,dataTrain.shape[1] + 1):
+    best_RSS=np.inf
+    
+    for combo in itertools.combinations(remaining_features,1):
+        reg=LinearRegression().fit(dataTrain[list(combo) + features],lpsaTrain)
+        pred=reg.predict(dataTrain[list(combo) + features]) #prediction to compute RSS
+        RSS=np.sum((lpsaTrain -pred)**2)
+        Rsquare=reg.score(dataTrain[list(combo) + features],lpsaTrain)
+        
+        if RSS<best_RSS:
+            best_RSS=RSS
+            best_feature=combo[0] #choose current combo
+            best_Rsquare=Rsquare
+        
+    features.append(best_feature)
+    remaining_features.remove(best_feature)
+    
+    #save for the plot
+    RSS_list.append(best_RSS)
+    RSquare_list.append(best_Rsquare)
+    features_list[i]=features.copy()
+    
+print('Forward stepwise selection RSS : {}'.format(np.round(best_RSS,3)))
+print('Forward stepwise selection R^2 : {}'.format(np.round(best_Rsquare,3)))
+
+#plot: x=subset size, y=RSS
+
+plt.scatter(np.arange(1,dataTrain.shape[1] + 1),RSS_list)
+plt.xlabel('k: subset size')
+plt.ylabel('RSS')
+plt.legend('RSS')
 plt.show()
