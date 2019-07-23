@@ -124,7 +124,9 @@ alphas_lasso, coefs_lasso, _=linear_model.lasso_path(predictorTrain_std,lpsaTrai
 
 for k in range(len(reg.coef_)):
     plt.plot(alphas_lasso,coefs_lasso[k,:],linestyle='--')
-    plt.legend()
+    #plt.legend()
 
+plt.xlabel('alpha')
+plt.ylabel('coefficients')
+plt.title('Lasso paths')
 plt.show()
-    
