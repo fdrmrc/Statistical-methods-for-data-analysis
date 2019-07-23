@@ -111,8 +111,8 @@ print('R^2: ',reg.score(predictorTrain_std,lpsaTrain))
 
 print('\n')
 
-#LASSO regression on train set
 
+#LASSO regression on train set
 reg=linear_model.Lasso(alpha=0.1)
 reg.fit(predictorTrain_std,lpsaTrain)
 print('Lasso regression coefficients are:', reg.coef_)
@@ -130,3 +130,28 @@ plt.xlabel('alpha')
 plt.ylabel('coefficients')
 plt.title('Lasso paths')
 plt.show()
+
+
+#Find the best regularization parameter by cross-validation
+
+model = linear_model.LassoCV(cv=20).fit(predictorTrain_std, lpsaTrain)
+m_log_alphas = -np.log10(model.alphas_)
+
+plt.figure
+plt.plot(m_log_alphas, model.mse_path_, ':') #mean square error
+plt.title('Mean square error for each fold')
+plt.plot(m_log_alphas, model.mse_path_.mean(axis=1), 'k', #average across all folds
+         label='Average across the folds', linewidth=2)
+plt.axvline(-np.log10(model.alpha_), linestyle='--', color='k',
+            label='alpha: CV estimate') #show best regularization parameter in the plot 
+
+plt.xlabel('-log(alpha)')
+plt.ylabel('Mean square error')
+plt.legend()
+plt.show()
+
+#Show the best alpha, model coefficients and performance on training  set
+print('\n')
+print('The best alpha is: ',model.alpha_)
+print('Model coefficients are: ',model.coef_)
+print('Model R^2: ',model.score(predictorTrain_std,lpsaTrain))
