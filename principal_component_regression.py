@@ -22,7 +22,7 @@ predictorTrain=dataTrain
 #Genero il test set.
 dataTest=data.loc['F']
 lpsaTest=dataTest.iloc[:,-1]
-dataTest=dataTest.drop('lpsa',axis=1)
+predictorTest=dataTest.drop('lpsa',axis=1)
 
 
 #standardizzare le variabili
@@ -44,14 +44,21 @@ for i in range (0,np.array(dataTrain.shape)[1]):
 predictorTrain_std=predictorTrain #assegno il train set standardizzato a una nuova variaibile
 
 
-#New model for the prostate cancer dataset by Principal Component Regression
+# Standardize test set
+
+predictorTestMean=predictorTest.mean()
+predictorTestStd=predictorTest.std()
+predictorTest_std= (predictorTest-predictorTestMean)/predictorTestStd #predictor test standardized
+
+
+#####New model for the prostate cancer dataset by Principal Component Regression
 
 #compute principal component decomposition
 pca=PCA(n_components=8)
 pca.fit(predictorTrain_std)
 print('Dimension of Principal component matrix (V): ', pca.components_.shape) #right: V \in \Matrices(p,p)!
 
-newTrain=np.matmul(predictorTrain_std,pca.components_) #X * V
+newTrain=np.dot(predictorTrain_std,pca.components_) #X * V
 reg=LinearRegression(normalize=True).fit(newTrain,lpsaTrain) #OLS using the matrix of the transformed training set
 
 
@@ -98,26 +105,33 @@ N=10
 kf=KFold(n_splits=N)
 scoresTrainMeans = np.zeros(predictorTrain_std.shape[1])
 errorTrainMeans = np.zeros(predictorTrain_std.shape[1])
+errorTestMeans = np.zeros(predictorTrain_std.shape[1])
 
 for train_i, test_i in kf.split(predictorTrain_std): #test_i will be used to k-Fold cross validation in the test set
     X_train, y_train = predictorTrain_std.iloc[train_i], lpsaTrain.iloc[train_i]
+    X_test, y_test = predictorTrain_std.iloc[test_i],lpsaTrain.iloc[test_i] #split the train set in  a train and a test set
     
     scoresTrain=[]
     errorTrain=[]
+    errorTest=[]
     for i in range (1,predictorTrain_std.shape[1]+1):
         pca=PCA(n_components=i)
         pca.fit(X_train)
         newTrain=pca.transform(X_train)
+        newTest=pca.transform(X_test)
         reg=LinearRegression().fit(newTrain,y_train) #OLS using the matrix of the transformed training set
         #origCoeff=pca.components_.dot(reg.coef_)
         scoresTrain.append(reg.score(newTrain, y_train))
         errorTrain.append(np.linalg.norm(y_train-reg.predict(newTrain)))
-            
+        errorTest.append(np.linalg.norm(y_test- reg.predict(newTest)))
+        
     scoresTrainMeans+= scoresTrain 
     errorTrainMeans+=errorTrain
-
+    errorTestMeans+=errorTest
+    
 scoresTrainMeans/=N
 errorTrainMeans/=N #divide by the number of splits
+errorTestMeans/=N
 
 #plots
 plt.figure()
@@ -126,10 +140,18 @@ plt.xlabel('number of components')
 plt.ylabel('scores')
 plt.title(str(N) + '-Folds Cross Validation Train Score with PCA')
 plt.legend()
+
 plt.figure()
 plt.plot(range(1,predictorTrain_std.shape[1]+1),errorTrainMeans,marker='*',label='train error')
 plt.title(str(N) + '-Folds Cross Validation Train Error with PCA');
 plt.xlabel('number of components')
 plt.ylabel('error on train set')
+plt.legend()
+
+plt.figure()
+plt.plot(range(1,predictorTrain_std.shape[1]+1),errorTestMeans,marker='*',label='scores')
+plt.xlabel('number of components')
+plt.ylabel('scores')
+plt.title(str(N) + '-Folds Cross Validation Test Error with PCA')
 plt.legend()
 plt.show()
