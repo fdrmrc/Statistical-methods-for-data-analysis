@@ -112,7 +112,7 @@ for train_i in kf.split(predictorTrain_std):
         scoresTrain.append(reg.score(newTrain, y_train))
         errorTrain.append(np.linalg.norm(y_train-reg.predict(newTrain)))
             
-    scoresTrainMeans+= scoreTrain #concatena la lista
+    scoresTrainMeans+= scoresTrain 
     errorTrainMeans+=errorTrain
 
 scoresTrainMeans/=N
