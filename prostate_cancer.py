@@ -50,22 +50,24 @@ predictorTrain_std=predictorTrain #assegno il train set standardizzato a una nuo
 
 #Some histograms
 
-plt.subplot(221)
-predictorTrain_std.iloc[:,0].hist()
-plt.title('lcavol')
-
-plt.subplot(222)
-predictorTrain_std.iloc[:,1].hist()
-plt.title('lweight')
-
-plt.subplot(223)
-predictorTrain_std.iloc[:,2].hist()
-plt.title('age')
-
-plt.subplot(224)
-predictorTrain_std.iloc[:,-2].hist()
-plt.title('gleason')
+data.hist(figsize=(20,15))
 plt.show()
+#plt.subplot(221)
+#predictorTrain_std.iloc[:,0].hist()
+#plt.title('lcavol')
+#
+#plt.subplot(222)
+#predictorTrain_std.iloc[:,1].hist()
+#plt.title('lweight')
+#
+#plt.subplot(223)
+#predictorTrain_std.iloc[:,2].hist()
+#plt.title('age')
+#
+#plt.subplot(224)
+#predictorTrain_std.iloc[:,-2].hist()
+#plt.title('gleason')
+#plt.show()
 
 
 #Linear regression
