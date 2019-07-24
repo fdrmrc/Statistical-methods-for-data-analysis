@@ -83,12 +83,13 @@ print('Intercep: ', reg.intercept_)
 
 
 #Plot the scores on training set depending on the number of components used
+plt.figure()
 plt.plot(range(1,predictorTrain_std.shape[1]+1),scoreTrain,marker='*',label='Scores')
 plt.xlabel('number of components')
 plt.ylabel('R square')
+plt.title('Score (R^2) versus number of components in the Train Set')
 plt.legend()
-plt.show()
-plt.show()
+
 
 
     
@@ -98,8 +99,8 @@ kf=KFold(n_splits=N)
 scoresTrainMeans = np.zeros(predictorTrain_std.shape[1])
 errorTrainMeans = np.zeros(predictorTrain_std.shape[1])
 
-for train_i in kf.split(predictorTrain_std):
-    X_train, y_train = predictorTrain_std.iloc[train_i[0]], lpsaTrain.iloc[train_i[0]]
+for train_i, test_i in kf.split(predictorTrain_std): #test_i will be used to k-Fold cross validation in the test set
+    X_train, y_train = predictorTrain_std.iloc[train_i], lpsaTrain.iloc[train_i]
     
     scoresTrain=[]
     errorTrain=[]
