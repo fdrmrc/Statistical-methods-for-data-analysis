@@ -7,6 +7,7 @@ from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.metrics import mean_squared_error
 from sklearn.decomposition import PCA
 from sklearn.model_selection import KFold
+from sklearn.cluster import KMeans
 
 data=pd.read_csv('prostate.csv',sep=',',engine='python',index_col='train')
 
@@ -26,23 +27,29 @@ predictorTest=dataTest.drop('lpsa',axis=1)
 
 
 #standardizzare le variabili
-#1. calcolo la media per ogni colonna
-predictorTrainMean=np.zeros([1,np.array(dataTrain.shape)[1]])
-for i in range (0,np.array(dataTrain.shape)[1]):
-    predictorTrainMean[0,i]=predictorTrain.iloc[:,i].mean()
 
-#2. calcolo standard deviation
-predictorTrainStd=np.zeros([1,np.array(dataTrain.shape)[1]])
-for i in range (0,np.array(dataTrain.shape)[1]):
-    predictorTrainStd[0,i]=predictorTrain.iloc[:,i].std()
+##1. calcolo la media per ogni colonna
+#predictorTrainMean=np.zeros([1,np.array(dataTrain.shape)[1]])
+#for i in range (0,np.array(dataTrain.shape)[1]):
+#    predictorTrainMean[0,i]=predictorTrain.iloc[:,i].mean()
+#
+##2. calcolo standard deviation
+#predictorTrainStd=np.zeros([1,np.array(dataTrain.shape)[1]])     #avoid loops
+#for i in range (0,np.array(dataTrain.shape)[1]):
+#    predictorTrainStd[0,i]=predictorTrain.iloc[:,i].std()
+#
+##3. standardizing variables
+#
+#for i in range (0,np.array(dataTrain.shape)[1]):
+#    predictorTrain.iloc[:,i]=(predictorTrain.iloc[:,i]-predictorTrainMean[0,i])/(predictorTrainStd[0,i])
+#
+#predictorTrain_std=predictorTrain #assegno il train set standardizzato a una nuova variaibile
 
-#3. standardizing variables
+predictorTrainMean=predictorTrain.mean()
+predictorTrainStd=predictorTrain.std()
+predictorTrain_std=(predictorTrain - predictorTrainMean)/(predictorTrainStd) #in this way I avoid the loop on the columns by using methods
 
-for i in range (0,np.array(dataTrain.shape)[1]):
-    predictorTrain.iloc[:,i]=(predictorTrain.iloc[:,i]-predictorTrainMean[0,i])/(predictorTrainStd[0,i])
-
-predictorTrain_std=predictorTrain #assegno il train set standardizzato a una nuova variaibile
-
+print(predictorTrain_std)
 
 # Standardize test set
 
@@ -76,14 +83,16 @@ print('\n')
 #Compute the PCR model with all possible numbers of principal components (from 1 to 8)
 #and show model coeffs, intercepts and score
 scoreTrain=[]
+scoreTest=[]
 for i in range (1,predictorTrain_std.shape[1]+1):
     pca=PCA(n_components=i)
     pca.fit(predictorTrain_std)
     newTrain=pca.transform(predictorTrain_std)
+    newTest=pca.transform(predictorTest_std)
     reg=LinearRegression(normalize=True).fit(newTrain,lpsaTrain) #OLS using the matrix of the transformed training set
     #origCoeff=pca.components_.dot(reg.coef_)
     scoreTrain.append(reg.score(newTrain, lpsaTrain))
-
+    scoreTest.append(reg.score(newTest,lpsaTest))
 
 print('R square for different number of components: ', scoreTrain)
 print('Intercep: ', reg.intercept_)
@@ -97,7 +106,12 @@ plt.ylabel('R square')
 plt.title('Score (R^2) versus number of components in the Train Set')
 plt.legend()
 
-
+plt.figure()
+plt.plot(range(1,predictorTest_std.shape[1]+1),scoreTest,marker='*',label='Scores')
+plt.xlabel('number of components')
+plt.ylabel('R square')
+plt.title('Score (R^2) versus number of components in the Test Set')
+plt.legend()
 
     
 #K-Fold cross validation on the entire dataset
@@ -109,7 +123,7 @@ errorTestMeans = np.zeros(predictorTrain_std.shape[1])
 
 for train_i, test_i in kf.split(predictorTrain_std): #test_i will be used to k-Fold cross validation in the test set
     X_train, y_train = predictorTrain_std.iloc[train_i], lpsaTrain.iloc[train_i]
-    X_test, y_test = predictorTrain_std.iloc[test_i],lpsaTrain.iloc[test_i] #split the train set in  a train and a test set
+    X_test, y_test = predictorTrain_std.iloc[test_i],lpsaTrain.iloc[test_i] #split the train set in a train and a test set
     
     scoresTrain=[]
     errorTrain=[]
@@ -117,13 +131,16 @@ for train_i, test_i in kf.split(predictorTrain_std): #test_i will be used to k-F
     for i in range (1,predictorTrain_std.shape[1]+1):
         pca=PCA(n_components=i)
         pca.fit(X_train)
-        newTrain=pca.transform(X_train)
-        newTest=pca.transform(X_test)
+        newTrain=pca.transform(X_train) #Matrix of transformed training set
+        newTest=pca.transform(X_test) #Matrix of transformed test
+        
+        
+        set
         reg=LinearRegression().fit(newTrain,y_train) #OLS using the matrix of the transformed training set
         #origCoeff=pca.components_.dot(reg.coef_)
         scoresTrain.append(reg.score(newTrain, y_train))
         errorTrain.append(np.linalg.norm(y_train-reg.predict(newTrain)))
-        errorTest.append(np.linalg.norm(y_test- reg.predict(newTest)))
+        errorTest.append(np.linalg.norm(y_test- reg.predict(newTest))) #y_test - y_predicted
         
     scoresTrainMeans+= scoresTrain 
     errorTrainMeans+=errorTrain
@@ -143,15 +160,46 @@ plt.legend()
 
 plt.figure()
 plt.plot(range(1,predictorTrain_std.shape[1]+1),errorTrainMeans,marker='*',label='train error')
-plt.title(str(N) + '-Folds Cross Validation Train Error with PCA');
+plt.title(str(N) + '-Folds Cross Validation Train Error with PCA')
 plt.xlabel('number of components')
 plt.ylabel('error on train set')
 plt.legend()
 
 plt.figure()
-plt.plot(range(1,predictorTrain_std.shape[1]+1),errorTestMeans,marker='*',label='scores')
+plt.plot(range(1,predictorTrain_std.shape[1]+1),errorTestMeans,marker='*',label='test error')
 plt.xlabel('number of components')
 plt.ylabel('scores')
 plt.title(str(N) + '-Folds Cross Validation Test Error with PCA')
+plt.legend()
+plt.show()
+
+
+#Clustering analysis
+
+
+#df=pd.DataFrame(dataTrain,columns=['lweight','age'])
+#kmeans=KMeans(n_clusters=4).fit(df)
+#centroids=kmeans.cluster_centers_
+#print(centroids)
+#plt.figure()
+#plt.scatter(df['lweight'], df['age'], c= kmeans.labels_.astype(float), alpha=0.5)
+#plt.scatter(centroids[:, 0], centroids[:, 1], c='red', s=50)
+#plt.show()
+
+
+WCSS= []
+
+for i in range (1,9):
+    kmeans=KMeans(n_clusters=i)
+    kmeans.fit(dataTrain)
+    WCSS.append(kmeans.inertia_)
+
+
+plt.figure()
+plt.plot(range(1, 9), WCSS,'-bx',label='distorsion(K)')
+plt.axvline(3,0,max(WCSS),ls=':',label='best K')
+plt.title('Elbow Method: distortion as a function of K')
+plt.xlabel('Number of clusters')
+plt.ylabel('WCSS')
 plt.legend()
 plt.show()
