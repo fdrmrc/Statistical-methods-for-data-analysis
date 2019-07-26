@@ -463,20 +463,23 @@ print('Forward stepwise selection R^2 : {}'.format(np.round(best_Rsquare,3)))
 
 print(' \n * * * * * * * * * * * SHRINKAGE METHODS * * * * * * * * * * *')
 
-reg=linear_model.Ridge(alpha=1.0)
-reg.fit(predictorsTrain_std,N_CustomersTrain)
+print('\n - - - - - - - - - - - - \n')
 
-print('Ridge regression coefficients are:', reg.coef_)
-print('Ridge regression intercept is:', reg.intercept_)
-print('Ridge regression R^2 is:', reg.score(predictorsTrain_std,N_CustomersTrain))
 
-print('\n')
+#reg=linear_model.Ridge(alpha=1.0)
+#reg.fit(predictorsTrain_std,N_CustomersTrain)
+#
+#print('Ridge regression coefficients are:', reg.coef_)
+#print('Ridge regression intercept is:', reg.intercept_)
+#print('Ridge regression R^2 is:', reg.score(predictorsTrain_std,N_CustomersTrain))
+#
+#print('\n')
 
 #Ridge coefficients as a function of the regularization parameters
 
-alphas=np.logspace(-1,7,2000) #vector of regularization parameters. See documentation for logspace (goes from 1e-1 to 1e4 with 200 sample points)
+alphas=np.logspace(-3,7,2000) #vector of regularization parameters. See documentation for logspace (goes from 1e-1 to 1e4 with 200 sample points)
 coefs=list()
-mycoefs=np.zeros([7,len(alphas)])
+mycoefs=np.zeros([predictorsTest_std.shape[1],len(alphas)]) #predictorsTest_std.shape[1], the number of coefficients I expect
 for i in range(len(alphas)):
     reg=linear_model.Ridge(alpha=alphas[i])
     reg.fit(predictorsTrain_std,N_CustomersTrain)
@@ -488,21 +491,63 @@ for i in range(len(alphas)):
 #plt.semilogx(alphas,mycoefs[5,:])   #just a check
 #plt.show()
 
-#plot alphas against the related coefficients: cfr http://www.ds100.org/sp19/assets/lectures/regularization.pdf#Navigation24
+#PLOT THE COEFFICIENTS AGAINST alphas: cfr http://www.ds100.org/sp19/assets/lectures/regularization.pdf#Navigation24
 
 plt.figure()
-#for j in range (0,7):
-#    plt.smilogx()
 
 plt.semilogx(alphas,mycoefs[0,:],label='Beach P. Closed')
-plt.semilogx(alphas ,mycoefs[1,:],label='Temperature')
-plt.semilogx(alphas, mycoefs[2,:],label='Weekday')
+plt.semilogx(alphas,mycoefs[1,:],label='Temperature')
+plt.semilogx(alphas,mycoefs[2,:],label='Weekday')
 plt.semilogx(alphas,mycoefs[3,:],label='Weekends')
 plt.semilogx(alphas,mycoefs[4,:],label='Hour')
-plt.semilogx(alphas,mycoefs[5,:],label='Day')
+plt.semilogx(alphas,mycoefs[5,:],label='Day') 
 plt.semilogx(alphas,mycoefs[6,:],label='Month')
 plt.xlabel('regularization parameter')
 plt.ylabel('coefficients')
 plt.legend() # old comment: "save coeff in a matrix to plot also the legend"
 plt.title('Regularization parameter against Ridge coeffs')
 plt.show()
+
+# FIND the BEST REGULARIZATION PARAMETER by cross-validation
+predictorsTrain_std = predictorsTrain_std.drop(columns=['Weekday','Day','Month'])
+predictorsTest_std = predictorsTest_std.drop(columns=['Weekday','Day','Month'])  # I do it in the modified predictors sets
+
+reg = linear_model.RidgeCV(alphas=np.logspace(-3,7,2000),store_cv_values=True)
+reg.fit(predictorsTrain_std,N_CustomersTrain)
+#print('Dimensions of cv_values: ', reg.cv_values_.shape)
+print('\n best alpha: ', reg.alpha_)
+
+#Compute the mean by column of cv_values_: I obtain the average cross-validation error for each alpha. This is the value that has to be minimized 
+#colMean=np.zeros([reg.cv_values_.shape[1],1])
+#for i in range(reg.cv_values_.shape[1]):  # In order to avoid the loop I can use the method .mean() with argument axis
+#    colMean[i]=reg.cv_values_[:,i].mean()
+
+colMean=reg.cv_values_.mean(axis=0)
+
+#Plot the leave-one-out cross validation error
+plt.subplot(2,1,1)
+plt.suptitle('Leave one out cross validation error and zooming')
+plt.loglog(alphas,colMean)  #high magnitude in alphas array
+plt.xlabel('reg. parameters')
+plt.ylabel('Average cross validation error')
+plt.subplot(2,1,2)
+plt.loglog(alphas[0:300],colMean[0:300])
+plt.xlabel('reg. parameters')
+plt.ylabel('Average cross validation error')
+
+plt.show()
+
+
+#Identify the minimum leave-one-out cross-validation error and the related alpha, model coefficients and performance
+minAv=np.min(colMean)
+minIndex=np.where(colMean==minAv)[0][0] #tell me where colMean has its minimum
+best_alpha=alphas[minIndex] #pass the index of the minimum 
+reg=linear_model.Ridge(alpha=best_alpha)
+reg.fit(predictorsTrain_std,N_CustomersTrain)
+print('\n best_alpha by hand: ', best_alpha)
+
+print('\n New Ridge regression coefficients are:', reg.coef_)
+print('\n New Ridge regression intercept is:', reg.intercept_)
+print('\n New Ridge regression R^2 is:', reg.score(predictorsTrain_std,N_CustomersTrain))
+
+print('\n')
