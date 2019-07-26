@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd 
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
+import seaborn as sns
 from sklearn import linear_model
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.metrics import mean_squared_error
@@ -61,7 +62,7 @@ data['Hour']=Hour
 Day=pd.Series(pd.to_numeric(days, errors='coerce')).values #I want 1 and not 01, and so on...
 data['Day']=Day
 
-Year=pd.Series(years).values
+Year=pd.Series(pd.to_numeric(years, errors='coerce')).values #I want 1 and not 01, and so on...
 data['Year']=Year
 
 Month=pd.Series(pd.to_numeric(months, errors='coerce')).values #I want 1 and not 01, and so on...
@@ -76,25 +77,25 @@ print(data.tail())
 M=data.corr() 
 plt.matshow(M)
 plt.title('Correlation matrix')
-#plt.show()  # better to add some labels
+##plt.show()  # better to add some labels
 
 # **From the correlation matrix we can see that N_customers is highly correlated with: Beach_P_closed and Temperature **
 
-plt.figure()
+#plt.figure()
 plt.scatter(data['Temp'],data['N_Customers'],marker='.',color='red') #IT'S A CLUSTERING
 plt.xlabel('Temperature')
 plt.ylabel('N_Customers')
 plt.title('Number of customers depending on the temperature')
-#plt.show()
+##plt.show()
 
 # * * * * * * PLOT OF NUMBER OF CLIENTS (N_Customers variable) * * * * * *
 
 
 #Scatter plot of the variable N_customers
-plt.figure()
+#plt.figure()
 plt.scatter(range(1,data.shape[0]+1),data['N_Customers'],marker='.',s=2)
 plt.title('First scatter plot of N_Customers')
-#plt.show() #--> We can see that when the beach park is closed (1) we have lots of customers, while when the beach park is open (0) we have few customers
+##plt.show() #--> We can see that when the beach park is closed (1) we have lots of customers, while when the beach park is open (0) we have few customers
 
 #Plot number of customers for every day of each month !!!
 
@@ -108,40 +109,79 @@ for m in M:
     nCustomersMean[m-1]=CustomersPerMonth.mean()
     nCustomersStd[m-1]=CustomersPerMonth.std()
     
-plt.figure()
+#plt.figure()
 Month_label = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUNE', 'JULY', 'AUG', 'SEPT', 'OCT', 'NOV', 'DEC']
 plt.bar(Month_label,nCustomersMean,color='white',edgecolor='blue')
 plt.xlabel('Months')
 plt.ylabel('Mean per Month')
 plt.title('Mean of Number of customers per month')
-#plt.show()
+##plt.show()
 
 #Plot of the Mean number of customers per Hour in the Winter season
 i = 1;
-plt.figure(figsize=(30,10));
+#plt.figure(figsize=(30,10));
 plt.suptitle('Mean number of customers per Hour in the Winter season')
 H=range(0,24)
+D=range(1,8)
 Day_label=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] #for the plot
 WinterSeasonMonths=[1,2,3,10,11,12] #jump from MAY to SEPTEMBER
-for d in range(1,8):
+for d in D:
     nCustomersPerHourMean=[]
     for h in H:
         CustomersPerHour=data[(data.Hour==h) & (data.Weekday==d) & (data.Month.isin(WinterSeasonMonths))]['N_Customers'] #number of clients at day d, hour h in the winter season
         nCustomersPerHourMean.append(CustomersPerHour.mean()) #contains the mean of customer for each hour for a given day and in winter season
         
-    plt.subplot(4,2,i)
+    plt.subplot(2,4,i)
     plt.bar(H, height=nCustomersPerHourMean,color='white',edgecolor='blue')
     plt.title(Day_label[d-1])
     i+=1
-plt.show()
+##plt.show()
+    
 # ** I can see that in weekends I have more customers, as expected **
 # ** Not only, I can see that they are more in the evening **
 
 
 # * * * * * * *PLOT TEMPERATURE (Temp variable) * * * * * * *
 
+#Plot the temperature by day by hour
+#plt.figure(figsize=(20,40))
+plt.suptitle('Mean temperature by Month and by Hours')
+i=1
+for m in M:
+    Temperature= []
+    for h in H:
+        Temperatures=data[(data.Hour==h) & (data.Month==m)]['Temp']
+        Temperature.append(Temperatures.mean())
+    plt.subplot(3,4,i)
+    plt.bar(H,Temperature,color='white',edgecolor='blue')
+    plt.title(Month_label[m-1])
+    i+=1
+##plt.show()
+
+# * * * * * * * * * PLOT BEACH PARK CLOSED (variable) * * * * * * *
+#Beach_park_closed is a binary variable which is 1 if the Beach park is closed, 0 if the Beach park is open
 
 
 
-    
-        
+# * * * * * *  * N_CUSTOMERS AND TEMPERATURE DISTIBUTIONS * * * * * * * *
+
+
+#plt.figure(figsize=(30,10));
+plt.suptitle('Data Distributions')
+plt.subplot(2,1,1)
+sns.distplot(data['N_Customers'])
+plt.subplot(2,1,2)
+sns.distplot(data['Temp'])
+#plt.show()
+
+# * * * * * * START REGRESSION * * * * * * * *
+
+predictorsTrain=data[data.Year.isin([2016,2017])] 
+predictorsTest=data[data.Year.isin([2018])]       #--> Split the dataset in Train and Test Set
+
+N_CustomersTrain=predictorsTrain['N_Customers'] #ytrain
+predictorsTrain=predictorsTrain.drop('N_Customers',axis=1) #data train with only predictors
+
+N_CustomersTest=predictorsTest['N_Customers'] #ytest
+predictorsTest=predictorsTest.drop('N_Customers',axis=1) #data test with only predictors
+
