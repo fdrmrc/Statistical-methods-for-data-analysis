@@ -9,7 +9,8 @@ from sklearn.metrics import mean_squared_error
 from sklearn.decomposition import PCA
 from sklearn.model_selection import KFold
 from sklearn.cluster import KMeans
-from datetime import date 
+from datetime import date
+from scipy.stats import f
 
 data=pd.read_csv('dfSMDA.csv') #load data
 
@@ -195,8 +196,14 @@ predictorsTest_std = (predictorsTest - predictorsTest.mean())/predictorsTest.std
 #Regression with all the variables
 
 print(' \n * * * * * * * * * * * REGRESSION * * * * * * * * * * *')
+
+est=sm.OLS(N_CustomersTrain,sm.add_constant(predictorsTrain_std) ).fit()
+print(est.summary()) #from this we can see that the Z-score(Month) < 2
+
+
 print('Regression with ALL VARIABLES (except YEAR): ')
 reg=LinearRegression().fit(predictorsTrain_std,N_CustomersTrain)
+RSS=np.sum((N_CustomersTrain-reg.predict(predictorsTrain_std))**2)
 print('\n Coefficients model: ', np.round(reg.coef_,3),'\n Intercept model: ', np.round(reg.intercept_,3))
 print('\n Score: ', np.round(reg.score(predictorsTrain_std,N_CustomersTrain),4))
 
@@ -207,12 +214,15 @@ RMSETest=np.sqrt(((N_CustomersTest-reg.predict(predictorsTest_std)) **2).mean())
 
 print('\n RMSE on train: ', RMSETrain,'\n RMSE on test: ', RMSETest)
 
-#Now I consider as regressors: BEACH_PARK_CLOSED, TEMP, WEEKDAY, HOUR
+#Now I consider as regressors: BEACH_PARK_CLOSED, TEMP, WEEKDAY, WEEKENDS, HOUR 
 print('\n - - - - - - - - - - - - \n')
-print('Regression with: BEACH_PARK_CLOSED, TEMP, WEEKDAY, HOUR')
+print('Regression with: BEACH_PARK_CLOSED, TEMP, WEEKDAY, HOUR, WEEKENDS')
 
-predictorsTrain1=predictorsTrain_std.drop(['Weekends','Day','Month'],axis=1)
-predictorsTest1=predictorsTest_std.drop(['Weekends','Day','Month'],axis=1)
+#predictorsTrain1=predictorsTrain_std.drop(['Weekends','Day','Month'],axis=1)
+#predictorsTest1=predictorsTest_std.drop(['Weekends','Day','Month'],axis=1)
+
+predictorsTrain1=predictorsTrain_std.drop(['Day','Month'],axis=1)
+predictorsTest1=predictorsTest_std.drop(['Day','Month'],axis=1)
 
 reg1=LinearRegression().fit(predictorsTrain1,N_CustomersTrain)
 RSS1=np.sum((N_CustomersTrain-reg1.predict(predictorsTrain1))**2)
@@ -223,3 +233,14 @@ RMSE1_Test=np.sqrt(((N_CustomersTest-reg1.predict(predictorsTest1)) **2).mean())
 print('\n Coefficients model: ', np.round(reg1.coef_,3),'\n Intercept model: ', np.round(reg1.intercept_,3)) #Magari printa coeff + str(num model) ,più carino !!
 print('\n Score: ', np.round(reg1.score(predictorsTrain1,N_CustomersTrain),4))
 print('\n RMSE on train: ', RMSE1_Train, '\n RMSE on test: ', RMSE1_Test)
+
+
+#Using F-statistic in order to check that I can drop the variables WEEKENDS, DAYS, MONTHS
+
+F=((RSS1-RSS)/(3)) / ((RSS)/(predictorsTrain_std.shape[0]-6-1)) # F=((RSS_with_drop-RSS_no_drop)/(p1-p0))/(RSS_no_drop/(N-p1-p0))
+dfn, dfd= 3, predictorsTrain_std.shape[0]-6-1
+Cdf=f.cdf(F,dfn,dfd) #Pr(F_dfn,dfd> F), I use library scipy.stats 
+p_value=1-Cdf #Definition of p-value. It is 0.11>0.5
+print('p value F statistic is :' , p_value)
+# ** H_0: Model without DAY, MONTH is correct.
+# ** Since p_value=0.11>0.05, then I do not reject the H_0 hyp
