@@ -177,11 +177,49 @@ sns.distplot(data['Temp'])
 # * * * * * * START REGRESSION * * * * * * * *
 
 predictorsTrain=data[data.Year.isin([2016,2017])] 
-predictorsTest=data[data.Year.isin([2018])]       #--> Split the dataset in Train and Test Set
+predictorsTest=data[data.Year==2018]       #--> Split the dataset in Train and Test Set
 
 N_CustomersTrain=predictorsTrain['N_Customers'] #ytrain
 predictorsTrain=predictorsTrain.drop('N_Customers',axis=1) #data train with only predictors
+predictorsTrain=predictorsTrain.drop('Year',axis=1) #DROP YEAR BECAUSE THE MODEL MUST BE INDEPENDET FROM THE YEAR (otherwise I have NaN column)
 
 N_CustomersTest=predictorsTest['N_Customers'] #ytest
 predictorsTest=predictorsTest.drop('N_Customers',axis=1) #data test with only predictors
+predictorsTest=predictorsTest.drop('Year',axis=1) #DROP YEAR BECAUSE THE MODEL MUST BE INDEPENDET FROM THE YEAR
 
+# STANDARDIZE TRAIN AND TEST SET
+predictorsTrain_std=(predictorsTrain - predictorsTrain.mean())/(predictorsTrain.std())
+predictorsTest_std = (predictorsTest - predictorsTest.mean())/predictorsTest.std() #classical formula
+
+
+#Regression with all the variables
+
+print(' \n * * * * * * * * * * * REGRESSION * * * * * * * * * * *')
+print('Regression with ALL VARIABLES (except YEAR): ')
+reg=LinearRegression().fit(predictorsTrain_std,N_CustomersTrain)
+print('\n Coefficients model: ', np.round(reg.coef_,3),'\n Intercept model: ', np.round(reg.intercept_,3))
+print('\n Score: ', np.round(reg.score(predictorsTrain_std,N_CustomersTrain),4))
+
+error=np.linalg.norm(N_CustomersTrain-reg.predict(predictorsTrain_std))
+
+RMSETrain=np.sqrt(((N_CustomersTrain-reg.predict(predictorsTrain_std)) **2).mean())
+RMSETest=np.sqrt(((N_CustomersTest-reg.predict(predictorsTest_std)) **2).mean())
+
+print('\n RMSE on train: ', RMSETrain,'\n RMSE on test: ', RMSETest)
+
+#Now I consider as regressors: BEACH_PARK_CLOSED, TEMP, WEEKDAY, HOUR
+print('\n - - - - - - - - - - - - \n')
+print('Regression with: BEACH_PARK_CLOSED, TEMP, WEEKDAY, HOUR')
+
+predictorsTrain1=predictorsTrain_std.drop(['Weekends','Day','Month'],axis=1)
+predictorsTest1=predictorsTest_std.drop(['Weekends','Day','Month'],axis=1)
+
+reg1=LinearRegression().fit(predictorsTrain1,N_CustomersTrain)
+RSS1=np.sum((N_CustomersTrain-reg1.predict(predictorsTrain1))**2)
+
+RMSE1_Train=np.sqrt(((N_CustomersTrain-reg1.predict(predictorsTrain1)) **2).mean())
+RMSE1_Test=np.sqrt(((N_CustomersTest-reg1.predict(predictorsTest1)) **2).mean())
+
+print('\n Coefficients model: ', np.round(reg1.coef_,3),'\n Intercept model: ', np.round(reg1.intercept_,3)) #Magari printa coeff + str(num model) ,più carino !!
+print('\n Score: ', np.round(reg1.score(predictorsTrain1,N_CustomersTrain),4))
+print('\n RMSE on train: ', RMSE1_Train, '\n RMSE on test: ', RMSE1_Test)
