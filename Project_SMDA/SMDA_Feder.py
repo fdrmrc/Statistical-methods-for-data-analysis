@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 import seaborn as sns
+import itertools
 from sklearn import linear_model
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.metrics import mean_squared_error
@@ -78,7 +79,7 @@ print(data.tail())
 M=data.corr() 
 plt.matshow(M)
 plt.title('Correlation matrix')
-##plt.show()  # better to add some labels
+#plt.show()  # better to add some labels
 
 # **From the correlation matrix we can see that N_customers is highly correlated with: Beach_P_closed and Temperature **
 
@@ -98,7 +99,7 @@ plt.scatter(range(1,data.shape[0]+1),data['N_Customers'],marker='.',s=2)
 plt.title('First scatter plot of N_Customers')
 ##plt.show() #--> We can see that when the beach park is closed (1) we have lots of customers, while when the beach park is open (0) we have few customers
 
-#Plot number of customers for every day of each month !!!
+#Plot number of customers for every day of each month !!
 
 
 #Plot mean number of customers per month
@@ -146,7 +147,7 @@ for d in D:
 
 #Plot the temperature by day by hour
 #plt.figure(figsize=(20,40))
-plt.suptitle('Mean temperature by Month and by Hours')
+#plt.suptitle('Mean temperature by Month and by Hours')
 i=1
 for m in M:
     Temperature= []
@@ -168,11 +169,11 @@ for m in M:
 
 
 #plt.figure(figsize=(30,10));
-plt.suptitle('Data Distributions')
-plt.subplot(2,1,1)
-sns.distplot(data['N_Customers'])
-plt.subplot(2,1,2)
-sns.distplot(data['Temp'])
+#plt.suptitle('Data Distributions')
+#plt.subplot(2,1,1)
+#sns.distplot(data['N_Customers'])
+#plt.subplot(2,1,2)
+#sns.distplot(data['Temp'])
 #plt.show()
 
 # * * * * * * START REGRESSION * * * * * * * *
@@ -196,12 +197,11 @@ predictorsTest_std = (predictorsTest - predictorsTest.mean())/predictorsTest.std
 #Regression with all the variables
 
 print(' \n * * * * * * * * * * * REGRESSION * * * * * * * * * * *')
-
 est=sm.OLS(N_CustomersTrain,sm.add_constant(predictorsTrain_std) ).fit()
-print(est.summary()) #from this we can see that the Z-score(Month) < 2
+print(est.summary()) #from this we can see that the Z-score(Month) < 2. In fact month is striclty correlated with temperature
 
 
-print('Regression with ALL VARIABLES (except YEAR): ')
+print('\n Regression with ALL VARIABLES (except YEAR): ')
 reg=LinearRegression().fit(predictorsTrain_std,N_CustomersTrain)
 RSS=np.sum((N_CustomersTrain-reg.predict(predictorsTrain_std))**2)
 print('\n Coefficients model: ', np.round(reg.coef_,3),'\n Intercept model: ', np.round(reg.intercept_,3))
@@ -214,15 +214,16 @@ RMSETest=np.sqrt(((N_CustomersTest-reg.predict(predictorsTest_std)) **2).mean())
 
 print('\n RMSE on train: ', RMSETrain,'\n RMSE on test: ', RMSETest)
 
-#Now I consider as regressors: BEACH_PARK_CLOSED, TEMP, WEEKDAY, WEEKENDS, HOUR 
+#Now I consider as regressors: BEACH_PARK_CLOSED, TEMP, WEEKDAY, HOUR 
 print('\n - - - - - - - - - - - - \n')
-print('Regression with: BEACH_PARK_CLOSED, TEMP, WEEKDAY, HOUR, WEEKENDS')
+print('\n Regression with: BEACH_PARK_CLOSED, TEMP, WEEKDAY, HOUR')
 
-#predictorsTrain1=predictorsTrain_std.drop(['Weekends','Day','Month'],axis=1)
-#predictorsTest1=predictorsTest_std.drop(['Weekends','Day','Month'],axis=1)
+predictorsTrain1=predictorsTrain_std.drop(['Weekends','Day','Month'],axis=1)
+predictorsTest1=predictorsTest_std.drop(['Weekends','Day','Month'],axis=1)
 
-predictorsTrain1=predictorsTrain_std.drop(['Day','Month'],axis=1)
-predictorsTest1=predictorsTest_std.drop(['Day','Month'],axis=1)
+#print('\n Regression with: BEACH_PARK_CLOSED, TEMP, WEEKDAY, WEEKENDS, HOUR')
+#predictorsTrain1=predictorsTrain_std.drop(['Month'],axis=1)
+#predictorsTest1=predictorsTest_std.drop(['Month'],axis=1)
 
 reg1=LinearRegression().fit(predictorsTrain1,N_CustomersTrain)
 RSS1=np.sum((N_CustomersTrain-reg1.predict(predictorsTrain1))**2)
@@ -234,13 +235,160 @@ print('\n Coefficients model: ', np.round(reg1.coef_,3),'\n Intercept model: ', 
 print('\n Score: ', np.round(reg1.score(predictorsTrain1,N_CustomersTrain),4))
 print('\n RMSE on train: ', RMSE1_Train, '\n RMSE on test: ', RMSE1_Test)
 
+#Compute mean prediction error on Test data AND Base error rate on test data
+ynewpred=reg1.predict(predictorsTest1)
+meanPredErrTest=((ynewpred-N_CustomersTest).abs()).mean()
+baseErrOnTest=((N_CustomersTrain.mean()-N_CustomersTest).abs()).mean()
+print('\n Mean prediction error on test data: ', meanPredErrTest)
+print('\n Base error rate on test data: ', baseErrOnTest)
 
-#Using F-statistic in order to check that I can drop the variables WEEKENDS, DAYS, MONTHS
 
-F=((RSS1-RSS)/(3)) / ((RSS)/(predictorsTrain_std.shape[0]-6-1)) # F=((RSS_with_drop-RSS_no_drop)/(p1-p0))/(RSS_no_drop/(N-p1-p0))
-dfn, dfd= 3, predictorsTrain_std.shape[0]-6-1
-Cdf=f.cdf(F,dfn,dfd) #Pr(F_dfn,dfd> F), I use library scipy.stats 
-p_value=1-Cdf #Definition of p-value. It is 0.11>0.5
-print('p value F statistic is :' , p_value)
+
+#Using F-statistic in order to check that I can drop joint variables
+#p1, p0=
+#N=predictorsTrain_std.shape[0]
+#F=((RSS1-RSS)/(3)) / ((RSS)/(N-6-1)) # F=((RSS_with_drop-RSS_no_drop)/(p1-p0))/(RSS_no_drop/(N-p1-p0))
+#dfn, dfd=3 , predictorsTrain_std.shape[0]-6-1
+#Cdf=f.cdf(F,dfn,dfd) #Pr(F_dfn,dfd> F), I use library scipy.stats 
+#p_value=1-Cdf #Definition of p-value
+#print('\n p value for F statistic is :' , p_value)
 # ** H_0: Model without DAY, MONTH is correct.
-# ** Since p_value=0.11>0.05, then I do not reject the H_0 hyp
+# ** Since p_value>0.05, then I do not reject the H_0 hyp
+
+
+#Now I REMOVE BEACH_PARK_CLOSED
+print('\n - - - - - - - - - - - - \n')
+print('\n Regression without BEACH_PARK_CLOSED')
+print('\n Regression with: TEMP, WEEKDAY, HOUR')
+
+
+predictorsTrain2=predictorsTrain_std.drop(['Beach_Park_Closed','Weekends','Day','Month'],axis=1)
+predictorsTest2=predictorsTest_std.drop(['Beach_Park_Closed','Weekends','Day','Month'],axis=1)
+
+reg2=LinearRegression().fit(predictorsTrain2,N_CustomersTrain)
+RSS2=np.sum((N_CustomersTrain-reg2.predict(predictorsTrain2))**2)
+
+RMSE2_Train=np.sqrt(((N_CustomersTrain-reg2.predict(predictorsTrain2)) **2).mean())
+RMSE2_Test=np.sqrt(((N_CustomersTest-reg2.predict(predictorsTest2)) **2).mean())
+
+print('\n Coefficients model: ', np.round(reg2.coef_,3),'\n Intercept model: ', np.round(reg2.intercept_,3)) #Magari printa coeff + str(num model) ,più carino !!
+print('\n Score: ', np.round(reg2.score(predictorsTrain2,N_CustomersTrain),4), '- - - - - -> ! LOW SCORE !')
+print('\n RMSE on train: ', RMSE2_Train, '\n RMSE on test: ', RMSE2_Test)
+
+#I can see that if I drop the binary variable BEACH_PARK_CLOSED I lose lot of information and in fact I have a low Train score (about 0.64).
+#Say more please !!
+
+
+# * * * * * *  * SUBSET SELECTION * * * * * * * *
+#I choose:- Best subset selection
+#         - Forward selection
+
+print(' \n * * * * * * * * * * * SUBSET SELECTION * * * * * * * * * * *')
+#With the OLS we can have large variance
+
+
+#BEST SUBSET SELECTION
+print('\n BEST SUBSET SELECTION \n' )
+
+results=pd.DataFrame(columns=['num_features', 'features', 'MAE','RSS','R^2'])
+
+for k in range (1,predictorsTrain_std.shape[1]+1):
+    for subset in itertools.combinations(range(predictorsTrain_std.shape[1]),k):
+        subset=list(subset)
+        linreg=LinearRegression(normalize=True).fit(predictorsTrain_std.iloc[:,subset],N_CustomersTrain)
+        linreg_pred=linreg.predict(predictorsTrain_std.iloc[:,subset]) #prediction using train set
+        linreg_mae = np.mean(np.abs(N_CustomersTrain - linreg_pred))
+        RSS=np.sum((N_CustomersTrain -linreg_pred)**2)
+        Rsquare=linreg.score(predictorsTrain_std.iloc[:,subset] ,N_CustomersTrain)
+        results = results.append(pd.DataFrame([{'num_features': k,
+                                                'features': subset,
+                                                'MAE': linreg_mae,
+                                                'RSS':RSS,
+                                                'R^2':Rsquare}]),sort=True)
+
+#sort values by RSS
+results_sort=results.sort_values('RSS') #riordina in base a RSS, che è ciò che voglio minimizzare 
+
+best_subset_model=LinearRegression(normalize=True).fit(predictorsTrain_std.iloc[:,results_sort['features'].iloc[0]],N_CustomersTrain) #fit(X_best,y_train)
+best_subset_coefs=best_subset_model.coef_
+
+print('Best subset Selection RSS : {}'.format(np.round(results_sort['RSS'].iloc[0],3)))
+print('Best subset Selection R^2 : {}'.format(np.round(results_sort['R^2'].iloc[0],3)))
+
+
+#Plot of subset size vs. RSS
+results['min_RSS'] = results.groupby('num_features')['RSS'].transform(min) #aggiungo la colonna min_RSS
+plt.figure()
+ax=plt.gca() #!!(Understand the method .gca() ) So I can have a logarithmic scale in y (RSS), because I have high magnitude
+ax.scatter(results.iloc[:,4],results.iloc[:,1],alpha=0.8,color='grey',s=5) #x:subset size, y:RSS
+ax.set_yscale('log')
+plt.ylabel('RSS for every model')
+plt.title('RSS - Best subset selection')
+plt.legend()
+plt.plot(results.iloc[:,4],results.iloc[:,-1],color='red',linestyle=':')
+
+plt.show()
+
+#Plot of subset size vs. R^2
+results['max_R^2']=results.groupby('num_features')['R^2'].transform(max) #aggiungo la colonna max R^2
+#plt.figure()
+plt.scatter(results.iloc[:,4],results.iloc[:,2],alpha=0.8,color='darkblue',s=5) #x:subset size, y:R^2
+plt.xlabel('k: subset size')
+plt.ylabel('R^2 for every model')
+plt.title('R^2 - Best subset selection')
+plt.legend()
+plt.plot(results.iloc[:,4],results.iloc[:,-1],color='green',linestyle=':')
+
+plt.show()
+
+# ** From the last two plot we can see that we have the lowest RSS when we use a subset of k=4 variables. Moreover, looking at the corresponding
+# "R^2 versus subset size" graph and this confirms the fact that we have the smallest R^2 when we have 4 subset. Moreover, this value corresponds
+# to the value that we obtain when we drop the variables WEEKEND, DAY, MONTH **
+
+
+print('\n - - - - - - - - - - - - \n')
+print('\n FORWARD STEPWISE SELECTION \n' )
+
+#FORWARD STEPWISE SELECTION:
+#Forward Stepwise begins with a model containing no predictors, and then adds predictors to the model, one at the time.
+#At each step, the variable that gives the greatest additional improvement to the fit is added to the model.
+
+remaining_features=list(predictorsTrain_std.columns.values) #features to be included
+features=[] #start with empty model
+features_list=dict() #copy here features used
+RSS_list=[] 
+RSquare_list=[]
+for i in range (1,predictorsTrain_std.shape[1]+1):
+    best_RSS=np.inf
+    
+    for combo in itertools.combinations(remaining_features,1):
+        reg=LinearRegression().fit(predictorsTrain_std[list(combo) + features],N_CustomersTrain)
+        pred=reg.predict(predictorsTrain_std[list(combo) + features]) #prediction to compute RSS
+        RSS=np.sum((N_CustomersTrain -pred)**2)
+        Rsquare=reg.score(predictorsTrain_std[list(combo) + features],N_CustomersTrain)
+        
+        if RSS<best_RSS:
+            best_RSS=RSS
+            best_feature=combo[0] #choose current combo
+            best_Rsquare=Rsquare
+        
+    features.append(best_feature)
+    remaining_features.remove(best_feature)
+    
+    #save for the plot
+    RSS_list.append(best_RSS)
+    RSquare_list.append(best_Rsquare)
+    features_list[i]=features.copy()
+    
+print('Forward stepwise selection RSS : {}'.format(np.round(best_RSS,3)))
+print('Forward stepwise selection R^2 : {}'.format(np.round(best_Rsquare,3)))
+
+#plot: x=subset size, y=RSS
+#plt.figure()
+plt.scatter(np.arange(1,predictorsTrain_std.shape[1] + 1),RSS_list,label=' RSS ')
+plt.plot(np.arange(1,predictorsTrain_std.shape[1] + 1),RSS_list,'r-')
+plt.xlabel('k: subset size')
+plt.ylabel('RSS')
+plt.legend()
+plt.title('RSS - Forward stepwise selection')
+plt.show()
