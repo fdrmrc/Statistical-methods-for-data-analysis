@@ -1,5 +1,5 @@
-import numpy as np 
-import pandas as pd 
+import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 import seaborn as sns
@@ -45,7 +45,7 @@ for i in range (0,data.shape[0]):
         weekends.append(1)
     else:
         weekends.append(0)
-  
+
     hours.append(int(splitHour[0]))
 
 #ADD THE NEW columns to the dataframe. In order to do that, I have to create Series (which are columns in a DataFrame)
@@ -75,7 +75,7 @@ print(data.head())
 print(data.tail())
 
 #Plot of the correlation matrix
-M=data.corr() 
+M=data.corr()
 ##plt.matshow(M)
 ##plt.title('Correlation matrix')
 #####plt.show()  # better to add some labels
@@ -88,8 +88,6 @@ M=data.corr()
 ##plt.ylabel('N_Customers')
 ##plt.title('Number of customers depending on the temperature')
 ######plt.show()
-
-
 
 
 
@@ -117,7 +115,7 @@ for m in M:
     CustomersPerMonth=data[data.Month==m]['N_Customers'] #take all the entries corresponding to month=m and then take the N_Customers mean (m=1--> all the januaries)
     nCustomersMean[m-1]=CustomersPerMonth.mean()
     nCustomersStd[m-1]=CustomersPerMonth.std()
-    
+
 #######plt.figure()
 Month_label = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUNE', 'JULY', 'AUG', 'SEPT', 'OCT', 'NOV', 'DEC']
 ##plt.bar(Month_label,nCustomersMean,color='white',edgecolor='blue')
@@ -139,13 +137,13 @@ for d in D:
     for h in H:
         CustomersPerHour=data[(data.Hour==h) & (data.Weekday==d) & (data.Month.isin(WinterSeasonMonths))]['N_Customers'] #number of clients at day d, hour h in the winter season
         nCustomersPerHourMean.append(CustomersPerHour.mean()) #contains the mean of customer for each hour for a given day and in winter season
-        
+
     ###plt.subplot(2,4,i)
     ###plt.bar(H, height=nCustomersPerHourMean,color='white',edgecolor='blue')
     ###plt.title(Day_label[d-1])
     i+=1
 ####plt.show()
-    
+
 # ** I can see that in weekends I have more customers, as expected **
 # ** Not only, I can see that they are more in the evening **
 
@@ -218,7 +216,7 @@ for m in M:
 
 # * * * * * * START REGRESSION * * * * * * * *
 
-predictorsTrain=data[data.Year.isin([2016,2017])] 
+predictorsTrain=data[data.Year.isin([2016,2017])]
 predictorsTest=data[data.Year==2018]       #--> Split the dataset in Train and Test Set
 
 N_CustomersTrain=predictorsTrain['N_Customers'] #ytrain
@@ -262,7 +260,7 @@ print('\n Mean prediction error on test data: ', meanPredErrTest)
 print('\n Base error rate on test data: ', baseErrOnTest)
 
 
-#Now I consider as regressors: BEACH_PARK_CLOSED, TEMP, WEEKDAY, HOUR 
+#Now I consider as regressors: BEACH_PARK_CLOSED, TEMP, WEEKDAY, HOUR
 print('\n - - - - - - - - - - - - \n')
 print('\n Regression with: BEACH_PARK_CLOSED, TEMP, WEEKDAY, HOUR')
 
@@ -297,7 +295,7 @@ print('\n Base error rate on test data: ', baseErrOnTest)
 #N=predictorsTrain_std.shape[0]
 #F=((RSS1-RSS)/(3)) / ((RSS)/(N-6-1)) # F=((RSS_with_drop-RSS_no_drop)/(p1-p0))/(RSS_no_drop/(N-p1-p0))
 #dfn, dfd=3 , predictorsTrain_std.shape[0]-6-1
-#Cdf=f.cdf(F,dfn,dfd) #Pr(F_dfn,dfd> F), I use library scipy.stats 
+#Cdf=f.cdf(F,dfn,dfd) #Pr(F_dfn,dfd> F), I use library scipy.stats
 #p_value=1-Cdf #Definition of p-value
 #print('\n p value for F statistic is :' , p_value)
 # ** H_0: Model without DAY, MONTH is correct.
@@ -360,10 +358,10 @@ for k in range (1,predictorsTrain_std.shape[1]+1):
                                                 'features': subset,
                                                 'MAE': linreg_mae,
                                                 'RSS':RSS,
-                                                'R^2':Rsquare}]),sort=True)
+                                                'R^2':Rsquare}]))#,sort=True)
 
 #sort values by RSS
-results_sort=results.sort_values('RSS') #riordina in base a RSS, che è ciò che voglio minimizzare 
+results_sort=results.sort_values('RSS') #riordina in base a RSS, che è ciò che voglio minimizzare
 
 best_subset_model=LinearRegression(normalize=True).fit(predictorsTrain_std.iloc[:,results_sort['features'].iloc[0]],N_CustomersTrain) #fit(X_best,y_train)
 best_subset_coefs=best_subset_model.coef_
@@ -412,30 +410,30 @@ print('\n FORWARD STEPWISE SELECTION \n' )
 remaining_features=list(predictorsTrain_std.columns.values) #features to be included
 features=[] #start with empty model
 features_list=dict() #copy here features used
-RSS_list=[] 
+RSS_list=[]
 RSquare_list=[]
 for i in range (1,predictorsTrain_std.shape[1]+1):
     best_RSS=np.inf
-    
+
     for combo in itertools.combinations(remaining_features,1):
         reg=LinearRegression().fit(predictorsTrain_std[list(combo) + features],N_CustomersTrain)
         pred=reg.predict(predictorsTrain_std[list(combo) + features]) #prediction to compute RSS
         RSS=np.sum((N_CustomersTrain -pred)**2)
         Rsquare=reg.score(predictorsTrain_std[list(combo) + features],N_CustomersTrain)
-        
+
         if RSS<best_RSS:
             best_RSS=RSS
             best_feature=combo[0] #choose current combo
             best_Rsquare=Rsquare
-        
+
     features.append(best_feature)
     remaining_features.remove(best_feature)
-    
+
     #save for the plot
     RSS_list.append(best_RSS)
     RSquare_list.append(best_Rsquare)
     features_list[i]=features.copy()
-    
+
 print('Forward stepwise selection RSS : {}'.format(np.round(best_RSS,3)))
 print('Forward stepwise selection R^2 : {}'.format(np.round(best_Rsquare,3)))
 
@@ -484,7 +482,7 @@ for i in range(len(alphas)):
     reg.fit(predictorsTrain_std,N_CustomersTrain)
     #coefs.append(reg.coef_) #coef è un array di taglia 7. I do not use it because I can't display the legend in this way
     mycoefs[:,i]=reg.coef_ #matrix where for each column I have the 7 coefficients of the Ridge regression
-  
+
 #print(mycoefs.shape)
 ###plt.figure()
 ##plt.semilogx(alphas,mycoefs[5,:])   #just a check
@@ -499,7 +497,7 @@ for i in range(len(alphas)):
 #plt.semilogx(alphas,mycoefs[2,:],label='Weekday')
 #plt.semilogx(alphas,mycoefs[3,:],label='Weekends')
 #plt.semilogx(alphas,mycoefs[4,:],label='Hour')
-#plt.semilogx(alphas,mycoefs[5,:],label='Day') 
+#plt.semilogx(alphas,mycoefs[5,:],label='Day')
 #plt.semilogx(alphas,mycoefs[6,:],label='Month')
 #plt.xlabel('regularization parameter')
 #plt.ylabel('coefficients')
@@ -516,7 +514,7 @@ reg.fit(predictorsTrain_std,N_CustomersTrain)
 #print('Dimensions of cv_values: ', reg.cv_values_.shape)
 print('\n best alpha: ', reg.alpha_)
 
-#Compute the mean by column of cv_values_: I obtain the average cross-validation error for each alpha. This is the value that has to be minimized 
+#Compute the mean by column of cv_values_: I obtain the average cross-validation error for each alpha. This is the value that has to be minimized
 #colMean=np.zeros([reg.cv_values_.shape[1],1])
 #for i in range(reg.cv_values_.shape[1]):  # In order to avoid the loop I can use the method .mean() with argument axis
 #    colMean[i]=reg.cv_values_[:,i].mean()
@@ -541,7 +539,7 @@ colMean=reg.cv_values_.mean(axis=0)
 #Identify the minimum leave-one-out cross-validation error and the related alpha, model coefficients and performance
 minAv=np.min(colMean)
 minIndex=np.where(colMean==minAv)[0][0] #tell me where colMean has its minimum
-best_alpha=alphas[minIndex] #pass the index of the minimum 
+best_alpha=alphas[minIndex] #pass the index of the minimum
 
 regRidge=linear_model.Ridge(alpha=best_alpha)
 regRidge.fit(predictorsTrain_std,N_CustomersTrain)
@@ -560,13 +558,11 @@ print('\n RMSE on train: ', RMSERidge_Train, '\n RMSE on test: ', RMSERidge_Test
 print('\n - - - - - - - - - - - - \n')
 
 
-
-
 print('\n LASSO REGRESSION \n')
 # * * * * * * START LASSO REGRESSION * * * * * * * *
 
 #1. I use a cross validation in order to find the best alpha (regularization parameter). I call this regression regLasso.
-#2. Do Lasso regression with the best regularization parameter I can find by using regLasso.alpha_ 
+#2. Do Lasso regression with the best regularization parameter I can find by using regLasso.alpha_
 #   I call this model "reg"
 #3. Compute RMSE on train and test set
 #4. Plot Lasso coefficients as a function of the regularization parameter
@@ -584,7 +580,7 @@ m_log_alphas = -np.log10(regLasso.alphas_)
 #plt.plot(m_log_alphas, regLasso.mse_path_.mean(axis=1), 'k', #average across all folds
 #         label='Average across the folds', linewidth=2)
 #plt.axvline(-np.log10(regLasso.alpha_), linestyle='--', color='k',
- #           label='alpha: CV estimate') #show best regularization parameter in the plot 
+ #           label='alpha: CV estimate') #show best regularization parameter in the plot
 
 #plt.xlabel('-log(alpha)')
 #plt.ylabel('Mean square error')
@@ -602,7 +598,7 @@ RMSELasso_Test=np.sqrt(((N_CustomersTest-reg.predict(predictorsTest_std)) **2).m
 
 
 
-#Plot Lasso coefficients as a function of the regularization parameter !! 
+#Plot Lasso coefficients as a function of the regularization parameter !!
 alphas_lasso, coefs_lasso, _=linear_model.lasso_path(predictorsTrain_std,N_CustomersTrain)
 #plt.figure()
 
@@ -634,13 +630,15 @@ print('\n RMSE on train: ', RMSELasso_Train, '\n RMSE on test: ', RMSELasso_Test
 # * * * * * *  * PRINCIPAL COMPONENT ANALYSIS* * * * * * * *
 
 # I do it in the modified predictors sets
-predictorsTrain_std = predictorsTrain_std.drop(columns=['Weekday','Day','Month'])
-predictorsTest_std = predictorsTest_std.drop(columns=['Weekday','Day','Month'])   #Remove less important columns !!
+   #Remove less important columns !!
+predictorsTrain_std = predictorsTrain_std.drop(['Weekday','Day','Month'],axis=1)
+predictorsTest_std = predictorsTest_std.drop(['Weekday','Day','Month'],axis=1)   #Remove less important columns !!
+#https://stackoverflow.com/questions/40389018/dropping-multiple-columns-from-a-data-frame-using-python/41579847
 
 print(' \n * * * * * * * * * * * PRINCIPAL COMPONENT ANALYSIS * * * * * * * * * * *')
 
 
-#1. Take all the components 
+#1. Take all the components
 #2. Loop on all the components and plot the scores on training set depending on the number of components used
 
 
@@ -685,7 +683,7 @@ for i in range (1,predictorsTrain_std.shape[1]+1):
     #origCoeff=pca.components_.dot(reg.coef_)
     scoreTrain.append(reg.score(newTrain, N_CustomersTrain))
     scoreTest.append(reg.score(newTest,N_CustomersTest))
-    
+
 
 print('R^2 for different number of components: ', scoreTrain)
 
@@ -723,7 +721,7 @@ errorTestMeans = np.zeros(predictorsTrain_std.shape[1])
 for train_i, test_i in kf.split(predictorsTrain_std): #test_i will be used to k-Fold cross validation in the test set
     X_train, y_train = predictorsTrain_std.iloc[train_i], N_CustomersTrain.iloc[train_i]
     X_test, y_test = predictorsTrain_std.iloc[test_i], N_CustomersTrain.iloc[test_i] #split the train set in a train and a test set
-    
+
     scoresTrain=[]
     errorTrain=[]
     errorTest=[]
@@ -732,18 +730,18 @@ for train_i, test_i in kf.split(predictorsTrain_std): #test_i will be used to k-
         pca.fit(X_train)
         newTrain=pca.transform(X_train) #Matrix of transformed training set
         newTest=pca.transform(X_test) #Matrix of transformed test
-  
+
         reg=LinearRegression().fit(newTrain,y_train) #OLS using the matrix of the transformed training set
         #origCoeff=pca.components_.dot(reg.coef_)
-        
+
         scoresTrain.append(reg.score(newTrain, y_train))
         errorTrain.append(np.linalg.norm(y_train-reg.predict(newTrain)))
         errorTest.append(np.linalg.norm(y_test- reg.predict(newTest))) #y_test - y_predicted
-        
-    scoresTrainMeans+= scoresTrain 
+
+    scoresTrainMeans+= scoresTrain
     errorTrainMeans+=errorTrain
     errorTestMeans+=errorTest
-    
+
 scoresTrainMeans/=N
 errorTrainMeans/=N #divide by the number of splits
 errorTestMeans/=N
@@ -796,11 +794,14 @@ plt.show()
 # ** I can see that the good k is k=2, by Elbow method **
 
 km=KMeans(n_clusters=2)
-km.fit(data)
+km.fit(data) #I am interested in the km.labels_:
 columnsToCluster=[data['Temp'], data['N_Customers'], pd.DataFrame({ 'Cluster_Label': km.labels_})]
-clusteredData = pd.concat(columnsToCluster, axis=1);
+clusteredData = pd.concat(columnsToCluster, axis=1); #I create a Dataframe
 
 plt.figure()
-plt.scatter(clusteredData['Temp'][clusteredData.Cluster_Label==1], clusteredData['N_Customers'][clusteredData.Cluster_Label==1],marker='.',s=0.8)
-plt.scatter(clusteredData['Temp'][clusteredData.Cluster_Label==0], clusteredData['N_Customers'][clusteredData.Cluster_Label==0],marker='.',s=0.8)
+plt.scatter(clusteredData['Temp'][clusteredData.Cluster_Label==1], clusteredData['N_Customers'][clusteredData.Cluster_Label==1],marker='.',s=0.8,label='First group') #First group
+plt.scatter(clusteredData['Temp'][clusteredData.Cluster_Label==0], clusteredData['N_Customers'][clusteredData.Cluster_Label==0],marker='.',s=0.8,label='Second group') #Second group
+plt.xlabel('Temp')
+plt.ylabel('N_Customers')
+plt.legend()
 plt.show()
