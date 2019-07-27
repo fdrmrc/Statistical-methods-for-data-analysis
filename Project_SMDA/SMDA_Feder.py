@@ -76,18 +76,18 @@ print(data.tail())
 
 #Plot of the correlation matrix
 M=data.corr() 
-#plt.matshow(M)
-#plt.title('Correlation matrix')
-###plt.show()  # better to add some labels
+##plt.matshow(M)
+##plt.title('Correlation matrix')
+#####plt.show()  # better to add some labels
 
 # **From the correlation matrix we can see that N_customers is highly correlated with: Beach_P_closed and Temperature **
 
-######plt.figure()
-#plt.scatter(data['Temp'],data['N_Customers'],marker='.',color='red') #IT'S A CLUSTERING
-#plt.xlabel('Temperature')
-#plt.ylabel('N_Customers')
-#plt.title('Number of customers depending on the temperature')
-####plt.show()
+########plt.figure()
+##plt.scatter(data['Temp'],data['N_Customers'],marker='.',color='red') #IT'S A CLUSTERING
+##plt.xlabel('Temperature')
+##plt.ylabel('N_Customers')
+##plt.title('Number of customers depending on the temperature')
+######plt.show()
 
 
 
@@ -101,10 +101,10 @@ M=data.corr()
 
 
 #Scatter plot of the variable N_customers
-#####plt.figure()
-#plt.scatter(range(1,data.shape[0]+1),data['N_Customers'],marker='.',s=2)
-#plt.title('First scatter plot of N_Customers')
-####plt.show() #--> We can see that when the beach park is closed (1) we have lots of customers, while when the beach park is open (0) we have few customers
+#######plt.figure()
+##plt.scatter(range(1,data.shape[0]+1),data['N_Customers'],marker='.',s=2)
+##plt.title('First scatter plot of N_Customers')
+######plt.show() #--> We can see that when the beach park is closed (1) we have lots of customers, while when the beach park is open (0) we have few customers
 
 #Plot number of customers for every day of each month !!
 
@@ -118,18 +118,18 @@ for m in M:
     nCustomersMean[m-1]=CustomersPerMonth.mean()
     nCustomersStd[m-1]=CustomersPerMonth.std()
     
-#####plt.figure()
+#######plt.figure()
 Month_label = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUNE', 'JULY', 'AUG', 'SEPT', 'OCT', 'NOV', 'DEC']
-#plt.bar(Month_label,nCustomersMean,color='white',edgecolor='blue')
-#plt.xlabel('Months')
-#plt.ylabel('Mean per Month')
-#plt.title('Mean of Number of customers per month')
-####plt.show()
+##plt.bar(Month_label,nCustomersMean,color='white',edgecolor='blue')
+##plt.xlabel('Months')
+##plt.ylabel('Mean per Month')
+##plt.title('Mean of Number of customers per month')
+######plt.show()
 
 #Plot of the Mean number of customers per Hour in the Winter season
 i = 1;
-##plt.figure(figsize=(30,10));
-##plt.suptitle('Mean number of customers per Hour in the Winter season')
+###plt.figure(figsize=(30,10));
+###plt.suptitle('Mean number of customers per Hour in the Winter season')
 H=range(0,24)
 D=range(1,8)
 Day_label=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] #for the plot
@@ -140,11 +140,11 @@ for d in D:
         CustomersPerHour=data[(data.Hour==h) & (data.Weekday==d) & (data.Month.isin(WinterSeasonMonths))]['N_Customers'] #number of clients at day d, hour h in the winter season
         nCustomersPerHourMean.append(CustomersPerHour.mean()) #contains the mean of customer for each hour for a given day and in winter season
         
-    ##plt.subplot(2,4,i)
-    ##plt.bar(H, height=nCustomersPerHourMean,color='white',edgecolor='blue')
-    ##plt.title(Day_label[d-1])
+    ###plt.subplot(2,4,i)
+    ###plt.bar(H, height=nCustomersPerHourMean,color='white',edgecolor='blue')
+    ###plt.title(Day_label[d-1])
     i+=1
-##plt.show()
+####plt.show()
     
 # ** I can see that in weekends I have more customers, as expected **
 # ** Not only, I can see that they are more in the evening **
@@ -161,19 +161,19 @@ for d in D:
 # * * * * * * *PLOT TEMPERATURE (Temp variable) * * * * * * *
 
 #Plot the temperature by day by hour
-##plt.figure(figsize=(20,40))
-##plt.suptitle('Mean temperature by Month and by Hours')
+###plt.figure(figsize=(20,40))
+###plt.suptitle('Mean temperature by Month and by Hours')
 i=1
 for m in M:
     Temperature= []
     for h in H:
         Temperatures=data[(data.Hour==h) & (data.Month==m)]['Temp']
         Temperature.append(Temperatures.mean())
-    #plt.subplot(3,4,i)
-    #plt.bar(H,Temperature,color='white',edgecolor='blue')
-    #plt.title(Month_label[m-1])
+    ##plt.subplot(3,4,i)
+    ##plt.bar(H,Temperature,color='white',edgecolor='blue')
+    ##plt.title(Month_label[m-1])
     i+=1
-####plt.show()
+###plt.show()
 
 
 
@@ -196,18 +196,16 @@ for m in M:
 
 
 
-
-
 # * * * * * *  * N_CUSTOMERS AND TEMPERATURE DISTIBUTIONS * * * * * * * *
 
 
-##plt.figure(figsize=(30,10));
-##plt.suptitle('Data Distributions')
-##plt.subplot(2,1,1)
+###plt.figure(figsize=(30,10));
+###plt.suptitle('Data Distributions')
+###plt.subplot(2,1,1)
 #sns.distplot(data['N_Customers'])
-##plt.subplot(2,1,2)
+###plt.subplot(2,1,2)
 #sns.distplot(data['Temp'])
-###plt.show()
+#####plt.show()
 
 
 
@@ -376,28 +374,28 @@ print('Best subset Selection R^2 : {}'.format(np.round(results_sort['R^2'].iloc[
 
 #Plot of subset size vs. RSS
 results['min_RSS'] = results.groupby('num_features')['RSS'].transform(min) #aggiungo la colonna min_RSS
-####plt.figure()
-#ax=plt.gca() #!!(Understand the method .gca() ) So I can have a logarithmic scale in y (RSS), because I have high magnitude
+######plt.figure()
+#ax=#plt.gca() #!!(Understand the method .gca() ) So I can have a logarithmic scale in y (RSS), because I have high magnitude
 #ax.scatter(results.iloc[:,4],results.iloc[:,1],alpha=0.8,color='grey',s=5) #x:subset size, y:RSS
 #ax.set_yscale('log')
-#plt.ylabel('RSS for every model')
-#plt.title('RSS - Best subset selection')
-#plt.legend()
-#plt.plot(results.iloc[:,4],results.iloc[:,-1],color='red',linestyle=':')
+##plt.ylabel('RSS for every model')
+##plt.title('RSS - Best subset selection')
+##plt.legend()
+##plt.plot(results.iloc[:,4],results.iloc[:,-1],color='red',linestyle=':')
 
-##plt.show()
+####plt.show()
 
 #Plot of subset size vs. R^2
 results['max_R^2']=results.groupby('num_features')['R^2'].transform(max) #aggiungo la colonna max R^2
-#####plt.figure()
-#plt.scatter(results.iloc[:,4],results.iloc[:,2],alpha=0.8,color='darkblue',s=5) #x:subset size, y:R^2
-#plt.xlabel('k: subset size')
-#plt.ylabel('R^2 for every model')
-#plt.title('R^2 - Best subset selection')
-#plt.legend()
-#plt.plot(results.iloc[:,4],results.iloc[:,-1],color='green',linestyle=':')
+#######plt.figure()
+##plt.scatter(results.iloc[:,4],results.iloc[:,2],alpha=0.8,color='darkblue',s=5) #x:subset size, y:R^2
+##plt.xlabel('k: subset size')
+##plt.ylabel('R^2 for every model')
+##plt.title('R^2 - Best subset selection')
+##plt.legend()
+##plt.plot(results.iloc[:,4],results.iloc[:,-1],color='green',linestyle=':')
 
-##plt.show()
+####plt.show()
 
 # ** From the last two plot we can see that we have the lowest RSS when we use a subset of k=4 variables. Moreover, looking at the corresponding
 # "R^2 versus subset size" graph and this confirms the fact that we have the smallest R^2 when we have 4 subset. Moreover, this value corresponds
@@ -442,14 +440,14 @@ print('Forward stepwise selection RSS : {}'.format(np.round(best_RSS,3)))
 print('Forward stepwise selection R^2 : {}'.format(np.round(best_Rsquare,3)))
 
 #plot: x=subset size, y=RSS
-#####plt.figure()
-#plt.scatter(np.arange(1,predictorsTrain_std.shape[1] + 1),RSS_list,label=' RSS ')
-#plt.plot(np.arange(1,predictorsTrain_std.shape[1] + 1),RSS_list,'r-')
-#plt.xlabel('k: subset size')
-#plt.ylabel('RSS')
-#plt.legend()
-#plt.title('RSS - Forward stepwise selection')
-##plt.show()
+#######plt.figure()
+##plt.scatter(np.arange(1,predictorsTrain_std.shape[1] + 1),RSS_list,label=' RSS ')
+##plt.plot(np.arange(1,predictorsTrain_std.shape[1] + 1),RSS_list,'r-')
+##plt.xlabel('k: subset size')
+##plt.ylabel('RSS')
+##plt.legend()
+##plt.title('RSS - Forward stepwise selection')
+####plt.show()
 
 
 
@@ -464,6 +462,8 @@ print('Forward stepwise selection R^2 : {}'.format(np.round(best_Rsquare,3)))
 print(' \n * * * * * * * * * * * SHRINKAGE METHODS * * * * * * * * * * *')
 
 print('\n RIDGE REGRESSION \n')
+
+
 
 #reg=linear_model.Ridge(alpha=1.0)
 #reg.fit(predictorsTrain_std,N_CustomersTrain)
@@ -486,26 +486,26 @@ for i in range(len(alphas)):
     mycoefs[:,i]=reg.coef_ #matrix where for each column I have the 7 coefficients of the Ridge regression
   
 #print(mycoefs.shape)
-#plt.figure()
-#plt.semilogx(alphas,mycoefs[5,:])   #just a check
-#plt.show()
+###plt.figure()
+##plt.semilogx(alphas,mycoefs[5,:])   #just a check
+###plt.show()
 
 #PLOT THE COEFFICIENTS AGAINST alphas: cfr http://www.ds100.org/sp19/assets/lectures/regularization.pdf#Navigation24
 
-plt.figure()
+##plt.figure()
 
-plt.semilogx(alphas,mycoefs[0,:],label='Beach P. Closed')
-plt.semilogx(alphas,mycoefs[1,:],label='Temperature')
-plt.semilogx(alphas,mycoefs[2,:],label='Weekday')
-plt.semilogx(alphas,mycoefs[3,:],label='Weekends')
-plt.semilogx(alphas,mycoefs[4,:],label='Hour')
-plt.semilogx(alphas,mycoefs[5,:],label='Day') 
-plt.semilogx(alphas,mycoefs[6,:],label='Month')
-plt.xlabel('regularization parameter')
-plt.ylabel('coefficients')
-plt.legend() # old comment: "save coeff in a matrix to plot also the legend"
-plt.title('Regularization parameter against Ridge coeffs')
-plt.show()
+#plt.semilogx(alphas,mycoefs[0,:],label='Beach P. Closed')
+#plt.semilogx(alphas,mycoefs[1,:],label='Temperature')
+#plt.semilogx(alphas,mycoefs[2,:],label='Weekday')
+#plt.semilogx(alphas,mycoefs[3,:],label='Weekends')
+#plt.semilogx(alphas,mycoefs[4,:],label='Hour')
+#plt.semilogx(alphas,mycoefs[5,:],label='Day') 
+#plt.semilogx(alphas,mycoefs[6,:],label='Month')
+#plt.xlabel('regularization parameter')
+#plt.ylabel('coefficients')
+#plt.legend() # old comment: "save coeff in a matrix to plot also the legend"
+#plt.title('Regularization parameter against Ridge coeffs')
+##plt.show()
 
 # FIND the BEST REGULARIZATION PARAMETER by cross-validation
 #predictorsTrain_std = predictorsTrain_std.drop(columns=['Weekday','Day','Month'])
@@ -524,18 +524,18 @@ print('\n best alpha: ', reg.alpha_)
 colMean=reg.cv_values_.mean(axis=0)
 
 #Plot the leave-one-out cross validation error
-plt.subplot(2,1,1)
-plt.suptitle('Leave one out cross validation error and zooming')
-plt.loglog(alphas,colMean)  #high magnitude in alphas array
-plt.xlabel('reg. parameters')
-plt.ylabel('Average cross validation error')
-plt.subplot(2,1,2)
-plt.loglog(alphas[0:300],colMean[0:300]) #Zoom  where I have the minimum value of the curve. !! IN THE CASE I USE THE PREDICTORS WITH 4 VARIABLES
-plt.plot(alphas[200:500],colMean[200:500]) #Zoom IN THE CASE I USE THE WHOLE PREDICTOR TRAIN STANDARDIZED
-plt.xlabel('reg. parameters')
-plt.ylabel('Average cross validation error')
+#plt.subplot(2,1,1)
+#plt.suptitle('Leave one out cross validation error and zooming')
+#plt.loglog(alphas,colMean)  #high magnitude in alphas array
+#plt.xlabel('reg. parameters')
+#plt.ylabel('Average cross validation error')
+#plt.subplot(2,1,2)
+#plt.loglog(alphas[0:300],colMean[0:300]) #Zoom  where I have the minimum value of the curve. !! IN THE CASE I USE THE PREDICTORS WITH 4 VARIABLES
+#plt.plot(alphas[200:500],colMean[200:500]) #Zoom IN THE CASE I USE THE WHOLE PREDICTOR TRAIN STANDARDIZED
+#plt.xlabel('reg. parameters')
+#plt.ylabel('Average cross validation error')
 
-plt.show()
+##plt.show()
 
 
 #Identify the minimum leave-one-out cross-validation error and the related alpha, model coefficients and performance
@@ -555,7 +555,7 @@ print('\n Ridge regression coefficients are:', regRidge.coef_)
 print('\n Ridge regression intercept is:', regRidge.intercept_)
 print('\n Ridge regression R^2 is:', regRidge.score(predictorsTrain_std,N_CustomersTrain))
 print('\n RMSE on train: ', RMSERidge_Train, '\n RMSE on test: ', RMSERidge_Test)
-#I can see that the RMSE_Ridge_Test is LOWER THAN RMSE1_Test (60 vs 64)
+# ** I can see that the RMSE_Ridge_Test is LOWER THAN RMSE1_Test (60 vs 64) **
 
 print('\n - - - - - - - - - - - - \n')
 
@@ -573,25 +573,23 @@ print('\n LASSO REGRESSION \n')
 
 
 
-
-
 #Find the best regularization parameter by cross-validation (see https://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_model_selection.html#sphx-glr-auto-examples-linear-model-plot-lasso-model-selection-py)
 
 regLasso = linear_model.LassoCV(cv=10).fit(predictorsTrain_std, N_CustomersTrain)
 m_log_alphas = -np.log10(regLasso.alphas_)
 
-plt.figure()
-plt.plot(m_log_alphas, regLasso.mse_path_, ':') #mean square error
-plt.title('Mean square error for each fold')
-plt.plot(m_log_alphas, regLasso.mse_path_.mean(axis=1), 'k', #average across all folds
-         label='Average across the folds', linewidth=2)
-plt.axvline(-np.log10(regLasso.alpha_), linestyle='--', color='k',
-            label='alpha: CV estimate') #show best regularization parameter in the plot 
+##plt.figure()
+#plt.plot(m_log_alphas, regLasso.mse_path_, ':') #mean square error
+#plt.title('Mean square error for each fold')
+#plt.plot(m_log_alphas, regLasso.mse_path_.mean(axis=1), 'k', #average across all folds
+#         label='Average across the folds', linewidth=2)
+#plt.axvline(-np.log10(regLasso.alpha_), linestyle='--', color='k',
+ #           label='alpha: CV estimate') #show best regularization parameter in the plot 
 
-plt.xlabel('-log(alpha)')
-plt.ylabel('Mean square error')
-plt.legend()
-plt.show()
+#plt.xlabel('-log(alpha)')
+#plt.ylabel('Mean square error')
+#plt.legend()
+##plt.show()
 
 
 #Now I do lasso regression with the best regularization parameter
@@ -606,15 +604,16 @@ RMSELasso_Test=np.sqrt(((N_CustomersTest-reg.predict(predictorsTest_std)) **2).m
 
 #Plot Lasso coefficients as a function of the regularization parameter !! 
 alphas_lasso, coefs_lasso, _=linear_model.lasso_path(predictorsTrain_std,N_CustomersTrain)
+#plt.figure()
 
-for k in range(len(reg.coef_)):
-    plt.plot(alphas_lasso,coefs_lasso[k,:],linestyle='--')
+#for k in range(len(reg.coef_)):
+    #plt.plot(alphas_lasso,coefs_lasso[k,:],linestyle='--')  !! decomment also the FOR loop in order to see the plot!
     #plt.legend()
 
-plt.xlabel('alpha')
-plt.ylabel('coefficients')
-plt.title('Lasso paths')
-plt.show()
+#plt.xlabel('alpha')
+#plt.ylabel('coefficients')
+#plt.title('Lasso paths')
+#plt.show()
 
 
 
@@ -625,3 +624,183 @@ print('\n Lasso regression intercept is: ',reg.intercept_)
 print('\n Lasso regression coefficients are: ',reg.coef_)
 print('\n Lasso regression R^2 is: ',reg.score(predictorsTrain_std,N_CustomersTrain))
 print('\n RMSE on train: ', RMSELasso_Train, '\n RMSE on test: ', RMSELasso_Test)
+
+
+
+
+
+
+
+# * * * * * *  * PRINCIPAL COMPONENT ANALYSIS* * * * * * * *
+
+# I do it in the modified predictors sets
+predictorsTrain_std = predictorsTrain_std.drop(columns=['Weekday','Day','Month'])
+predictorsTest_std = predictorsTest_std.drop(columns=['Weekday','Day','Month'])   #Remove less important columns !!
+
+print(' \n * * * * * * * * * * * PRINCIPAL COMPONENT ANALYSIS * * * * * * * * * * *')
+
+
+#1. Take all the components 
+#2. Loop on all the components and plot the scores on training set depending on the number of components used
+
+
+print('\n - - - - - - - - - - - - \n')
+print('\n Using all the components \n')
+
+
+#compute principal component decomposition
+pca=PCA(n_components=predictorsTrain_std.shape[1]) #4 components
+pca.fit(predictorsTrain_std)
+#print('Dimension of Principal component matrix (V): ', pca.components_.shape) #right: V \in \Matrices(p,p)!
+
+newTrain=np.dot(predictorsTrain_std,pca.components_) #X * V
+newTest=np.dot(predictorsTest_std,pca.components_)
+reg=LinearRegression(normalize=True).fit(newTrain,N_CustomersTrain) #OLS using the matrix of the transformed training set
+
+
+#Show model coefficients, intercept and score
+#I need to muliply the coefficients  by the matrix of the principal components, so I have the coefficients wrt the original variables
+#See https://en.wikipedia.org/wiki/Principal_component_regression
+origCoeff=pca.components_.dot(reg.coef_)
+
+print('\n PC regression coefficients are:', origCoeff)
+print('\n PC regression intercept is:',reg.intercept_)
+print('\n PC regression R^2 is:', reg.score(newTrain,N_CustomersTrain))
+
+
+print('\n')
+
+
+
+#Compute the PCR model with all possible numbers of principal components (from 1 to 8)
+#and show model coeffs, intercepts and score
+scoreTrain=[]
+scoreTest=[]
+for i in range (1,predictorsTrain_std.shape[1]+1):
+    pca=PCA(n_components=i)
+    pca.fit(predictorsTrain_std)
+    newTrain=pca.transform(predictorsTrain_std)
+    newTest=pca.transform(predictorsTest_std)
+    reg=linear_model.LinearRegression().fit(newTrain,N_CustomersTrain) #OLS using the matrix of the transformed training set
+    #origCoeff=pca.components_.dot(reg.coef_)
+    scoreTrain.append(reg.score(newTrain, N_CustomersTrain))
+    scoreTest.append(reg.score(newTest,N_CustomersTest))
+    
+
+print('R^2 for different number of components: ', scoreTrain)
+
+
+#Plot the scores on training set depending on the number of components used
+##plt.figure()
+#plt.plot(range(1,predictorsTrain_std.shape[1]+1),scoreTrain,'b-',range(1,predictorsTrain_std.shape[1]+1),scoreTrain,'ro',label='Scores')
+#plt.xlabel('number of components')
+#plt.ylabel('R square')
+#plt.title('Score (R^2) versus number of components in the Train Set')
+#plt.legend()
+
+##plt.figure()
+#plt.plot(range(1,predictorsTest_std.shape[1]+1),scoreTest,'b-',range(1,predictorsTest_std.shape[1]+1),scoreTest,'ro',label='Scores')
+#plt.xlabel('number of components')
+#plt.ylabel('R square')
+#plt.title('Score (R^2) versus number of components in the Test Set')
+#plt.legend()
+
+##plt.show()
+
+# ** I can see that with 4 components I have the biggest R^2, as I expected from the previous analysis. For example, in subset selection I already saw that
+#with 4 components I have a good R^2. Of course if I add other components it increases, but non in a significative way **
+
+
+
+
+#K-Fold cross validation on the entire dataset, K=50
+N=50
+kf=KFold(n_splits=N)
+scoresTrainMeans = np.zeros(predictorsTrain_std.shape[1])
+errorTrainMeans = np.zeros(predictorsTrain_std.shape[1])
+errorTestMeans = np.zeros(predictorsTrain_std.shape[1])
+
+for train_i, test_i in kf.split(predictorsTrain_std): #test_i will be used to k-Fold cross validation in the test set
+    X_train, y_train = predictorsTrain_std.iloc[train_i], N_CustomersTrain.iloc[train_i]
+    X_test, y_test = predictorsTrain_std.iloc[test_i], N_CustomersTrain.iloc[test_i] #split the train set in a train and a test set
+    
+    scoresTrain=[]
+    errorTrain=[]
+    errorTest=[]
+    for i in range (1,predictorsTrain_std.shape[1]+1): #Now that I have splitted data, I do the PCA regression
+        pca=PCA(n_components=i)
+        pca.fit(X_train)
+        newTrain=pca.transform(X_train) #Matrix of transformed training set
+        newTest=pca.transform(X_test) #Matrix of transformed test
+  
+        reg=LinearRegression().fit(newTrain,y_train) #OLS using the matrix of the transformed training set
+        #origCoeff=pca.components_.dot(reg.coef_)
+        
+        scoresTrain.append(reg.score(newTrain, y_train))
+        errorTrain.append(np.linalg.norm(y_train-reg.predict(newTrain)))
+        errorTest.append(np.linalg.norm(y_test- reg.predict(newTest))) #y_test - y_predicted
+        
+    scoresTrainMeans+= scoresTrain 
+    errorTrainMeans+=errorTrain
+    errorTestMeans+=errorTest
+    
+scoresTrainMeans/=N
+errorTrainMeans/=N #divide by the number of splits
+errorTestMeans/=N
+
+#plots
+##plt.figure()
+#plt.plot(range(1,predictorsTrain_std.shape[1]+1),scoresTrainMeans,'b',range(1,predictorsTrain_std.shape[1]+1),scoresTrainMeans,'ro', label='scores')
+#plt.xlabel('number of components')
+#plt.ylabel('scores')
+#plt.title(str(N) + '-Folds Cross Validation Train Score with PCA')
+#plt.legend()
+
+##plt.figure()
+#plt.plot(range(1,predictorsTrain_std.shape[1]+1),errorTrainMeans,'b',range(1,predictorsTrain_std.shape[1]+1),errorTrainMeans,'ro', label='train error')
+#plt.title(str(N) + '-Folds Cross Validation Train Error with PCA')
+#plt.xlabel('number of components')
+#plt.ylabel('error on train set')
+#plt.legend()
+
+##plt.figure()
+#plt.plot(range(1,predictorsTrain_std.shape[1]+1),errorTestMeans,'b',range(1,predictorsTrain_std.shape[1]+1),errorTestMeans,'ro',label='test error')
+#plt.xlabel('number of components')
+#plt.ylabel('error on test set')
+#plt.title(str(N) + '-Folds Cross Validation Test Error with PCA')
+#plt.legend()
+##plt.show()
+
+
+print(' \n * * * * * * * * * * * CLUSTERING ANALYSIS * * * * * * * * * * *')
+
+
+
+WCSS= []
+
+for i in range (1,data.shape[1]):
+    kmeans=KMeans(n_clusters=i)
+    kmeans.fit(data)
+    WCSS.append(kmeans.inertia_)
+
+
+plt.figure()
+plt.plot(range(1, data.shape[1]), WCSS,'-bx',label='distorsion(K)')
+plt.axvline(2,0,max(WCSS),ls=':',label='best K')
+plt.title('Elbow Method: distortion as a function of K')
+plt.xlabel('Number of clusters')
+plt.ylabel('WCSS')
+plt.legend()
+plt.show()
+
+# ** I can see that the good k is k=2, by Elbow method **
+
+km=KMeans(n_clusters=2)
+km.fit(data)
+columnsToCluster=[data['Temp'], data['N_Customers'], pd.DataFrame({ 'Cluster_Label': km.labels_})]
+clusteredData = pd.concat(columnsToCluster, axis=1);
+
+plt.figure()
+plt.scatter(clusteredData['Temp'][clusteredData.Cluster_Label==1], clusteredData['N_Customers'][clusteredData.Cluster_Label==1],marker='.',s=0.8)
+plt.scatter(clusteredData['Temp'][clusteredData.Cluster_Label==0], clusteredData['N_Customers'][clusteredData.Cluster_Label==0],marker='.',s=0.8)
+plt.show()
