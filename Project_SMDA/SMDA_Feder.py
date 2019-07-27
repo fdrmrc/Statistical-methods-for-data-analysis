@@ -508,8 +508,8 @@ plt.title('Regularization parameter against Ridge coeffs')
 plt.show()
 
 # FIND the BEST REGULARIZATION PARAMETER by cross-validation
-predictorsTrain_std = predictorsTrain_std.drop(columns=['Weekday','Day','Month'])
-predictorsTest_std = predictorsTest_std.drop(columns=['Weekday','Day','Month'])  # I do it in the modified predictors sets
+#predictorsTrain_std = predictorsTrain_std.drop(columns=['Weekday','Day','Month'])
+#predictorsTest_std = predictorsTest_std.drop(columns=['Weekday','Day','Month'])  # I do it in the modified predictors sets
 
 reg = linear_model.RidgeCV(alphas=np.logspace(-3,7,2000),store_cv_values=True)
 reg.fit(predictorsTrain_std,N_CustomersTrain)
@@ -530,7 +530,8 @@ plt.loglog(alphas,colMean)  #high magnitude in alphas array
 plt.xlabel('reg. parameters')
 plt.ylabel('Average cross validation error')
 plt.subplot(2,1,2)
-plt.loglog(alphas[0:300],colMean[0:300]) #Zoom  where I have the minimum value of the curve
+plt.loglog(alphas[0:300],colMean[0:300]) #Zoom  where I have the minimum value of the curve. !! IN THE CASE I USE THE PREDICTORS WITH 4 VARIABLES
+plt.plot(alphas[200:500],colMean[200:500]) #Zoom IN THE CASE I USE THE WHOLE PREDICTOR TRAIN STANDARDIZED
 plt.xlabel('reg. parameters')
 plt.ylabel('Average cross validation error')
 
@@ -558,4 +559,69 @@ print('\n RMSE on train: ', RMSERidge_Train, '\n RMSE on test: ', RMSERidge_Test
 
 print('\n - - - - - - - - - - - - \n')
 
+
+
+
 print('\n LASSO REGRESSION \n')
+# * * * * * * START LASSO REGRESSION * * * * * * * *
+
+#1. I use a cross validation in order to find the best alpha (regularization parameter). I call this regression regLasso.
+#2. Do Lasso regression with the best regularization parameter I can find by using regLasso.alpha_ 
+#   I call this model "reg"
+#3. Compute RMSE on train and test set
+#4. Plot Lasso coefficients as a function of the regularization parameter
+
+
+
+
+
+#Find the best regularization parameter by cross-validation (see https://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_model_selection.html#sphx-glr-auto-examples-linear-model-plot-lasso-model-selection-py)
+
+regLasso = linear_model.LassoCV(cv=10).fit(predictorsTrain_std, N_CustomersTrain)
+m_log_alphas = -np.log10(regLasso.alphas_)
+
+plt.figure()
+plt.plot(m_log_alphas, regLasso.mse_path_, ':') #mean square error
+plt.title('Mean square error for each fold')
+plt.plot(m_log_alphas, regLasso.mse_path_.mean(axis=1), 'k', #average across all folds
+         label='Average across the folds', linewidth=2)
+plt.axvline(-np.log10(regLasso.alpha_), linestyle='--', color='k',
+            label='alpha: CV estimate') #show best regularization parameter in the plot 
+
+plt.xlabel('-log(alpha)')
+plt.ylabel('Mean square error')
+plt.legend()
+plt.show()
+
+
+#Now I do lasso regression with the best regularization parameter
+#See https://scikit-learn.org/stable/auto_examples/linear_model/plot_lasso_coordinate_descent_path.html#sphx-glr-auto-examples-linear-model-plot-lasso-coordinate-descent-path-py).
+reg=linear_model.Lasso(alpha=regLasso.alpha_)
+reg.fit(predictorsTrain_std,N_CustomersTrain)
+
+RMSELasso_Train=np.sqrt(((N_CustomersTrain-reg.predict(predictorsTrain_std)) **2).mean())
+RMSELasso_Test=np.sqrt(((N_CustomersTest-reg.predict(predictorsTest_std)) **2).mean())
+
+
+
+#Plot Lasso coefficients as a function of the regularization parameter !! 
+alphas_lasso, coefs_lasso, _=linear_model.lasso_path(predictorsTrain_std,N_CustomersTrain)
+
+for k in range(len(reg.coef_)):
+    plt.plot(alphas_lasso,coefs_lasso[k,:],linestyle='--')
+    #plt.legend()
+
+plt.xlabel('alpha')
+plt.ylabel('coefficients')
+plt.title('Lasso paths')
+plt.show()
+
+
+
+#Show the best alpha, model coefficients and performance on training  set
+print('\n')
+print('\n The best alpha is: ',regLasso.alpha_)
+print('\n Lasso regression intercept is: ',reg.intercept_)
+print('\n Lasso regression coefficients are: ',reg.coef_)
+print('\n Lasso regression R^2 is: ',reg.score(predictorsTrain_std,N_CustomersTrain))
+print('\n RMSE on train: ', RMSELasso_Train, '\n RMSE on test: ', RMSELasso_Test)
