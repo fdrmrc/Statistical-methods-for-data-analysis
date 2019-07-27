@@ -463,8 +463,7 @@ print('Forward stepwise selection R^2 : {}'.format(np.round(best_Rsquare,3)))
 
 print(' \n * * * * * * * * * * * SHRINKAGE METHODS * * * * * * * * * * *')
 
-print('\n - - - - - - - - - - - - \n')
-
+print('\n RIDGE REGRESSION \n')
 
 #reg=linear_model.Ridge(alpha=1.0)
 #reg.fit(predictorsTrain_std,N_CustomersTrain)
@@ -531,7 +530,7 @@ plt.loglog(alphas,colMean)  #high magnitude in alphas array
 plt.xlabel('reg. parameters')
 plt.ylabel('Average cross validation error')
 plt.subplot(2,1,2)
-plt.loglog(alphas[0:300],colMean[0:300])
+plt.loglog(alphas[0:300],colMean[0:300]) #Zoom  where I have the minimum value of the curve
 plt.xlabel('reg. parameters')
 plt.ylabel('Average cross validation error')
 
@@ -542,12 +541,21 @@ plt.show()
 minAv=np.min(colMean)
 minIndex=np.where(colMean==minAv)[0][0] #tell me where colMean has its minimum
 best_alpha=alphas[minIndex] #pass the index of the minimum 
-reg=linear_model.Ridge(alpha=best_alpha)
-reg.fit(predictorsTrain_std,N_CustomersTrain)
+
+regRidge=linear_model.Ridge(alpha=best_alpha)
+regRidge.fit(predictorsTrain_std,N_CustomersTrain)
+
+RMSERidge_Train=np.sqrt(((N_CustomersTrain-regRidge.predict(predictorsTrain_std)) **2).mean())
+RMSERidge_Test=np.sqrt(((N_CustomersTest-regRidge.predict(predictorsTest_std)) **2).mean())
+
 print('\n best_alpha by hand: ', best_alpha)
 
-print('\n New Ridge regression coefficients are:', reg.coef_)
-print('\n New Ridge regression intercept is:', reg.intercept_)
-print('\n New Ridge regression R^2 is:', reg.score(predictorsTrain_std,N_CustomersTrain))
+print('\n Ridge regression coefficients are:', regRidge.coef_)
+print('\n Ridge regression intercept is:', regRidge.intercept_)
+print('\n Ridge regression R^2 is:', regRidge.score(predictorsTrain_std,N_CustomersTrain))
+print('\n RMSE on train: ', RMSERidge_Train, '\n RMSE on test: ', RMSERidge_Test)
+#I can see that the RMSE_Ridge_Test is LOWER THAN RMSE1_Test (60 vs 64)
 
-print('\n')
+print('\n - - - - - - - - - - - - \n')
+
+print('\n LASSO REGRESSION \n')
