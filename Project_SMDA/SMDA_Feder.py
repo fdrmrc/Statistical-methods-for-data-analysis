@@ -13,8 +13,9 @@ from sklearn.cluster import KMeans
 from datetime import date
 from scipy.stats import f
 
-data=pd.read_csv('dfSMDA.csv') #load data
 
+
+data=pd.read_csv('dfSMDA.csv') #load the dataset
 
 # * * * * * * * CHANGE THE DATASET TO CREATE NEW VARIABLES * * * * * *
 
@@ -88,9 +89,6 @@ M=data.corr()
 ##plt.ylabel('N_Customers')
 ##plt.title('Number of customers depending on the temperature')
 ######plt.show()
-
-
-
 
 
 
@@ -323,14 +321,6 @@ print('\n RMSE on train: ', RMSE2_Train, '\n RMSE on test: ', RMSE2_Test)
 
 #I can see that if I drop the binary variable BEACH_PARK_CLOSED I lose lot of information and in fact I have a low Train score (about 0.64).
 #Say more please !!
-
-
-
-
-
-
-
-
 
 # * * * * * *  * SUBSET SELECTION * * * * * * * *
 #I choose:- Best subset selection
@@ -711,8 +701,8 @@ print('R^2 for different number of components: ', scoreTrain)
 
 
 
-#K-Fold cross validation on the entire dataset, K=50
-N=50
+#K-Fold cross validation on the entire dataset, K=10 !!
+N=10
 kf=KFold(n_splits=N)
 scoresTrainMeans = np.zeros(predictorsTrain_std.shape[1])
 errorTrainMeans = np.zeros(predictorsTrain_std.shape[1])
@@ -747,32 +737,30 @@ errorTrainMeans/=N #divide by the number of splits
 errorTestMeans/=N
 
 #plots
-##plt.figure()
-#plt.plot(range(1,predictorsTrain_std.shape[1]+1),scoresTrainMeans,'b',range(1,predictorsTrain_std.shape[1]+1),scoresTrainMeans,'ro', label='scores')
-#plt.xlabel('number of components')
-#plt.ylabel('scores')
-#plt.title(str(N) + '-Folds Cross Validation Train Score with PCA')
-#plt.legend()
+plt.figure()
+plt.plot(range(1,predictorsTrain_std.shape[1]+1),scoresTrainMeans,'b',range(1,predictorsTrain_std.shape[1]+1),scoresTrainMeans,'ro', label='scores')
+plt.xlabel('number of components')
+plt.ylabel('scores')
+plt.title(str(N) + '-Folds Cross Validation Train Score with PCA')
+plt.legend()
 
-##plt.figure()
-#plt.plot(range(1,predictorsTrain_std.shape[1]+1),errorTrainMeans,'b',range(1,predictorsTrain_std.shape[1]+1),errorTrainMeans,'ro', label='train error')
-#plt.title(str(N) + '-Folds Cross Validation Train Error with PCA')
-#plt.xlabel('number of components')
-#plt.ylabel('error on train set')
-#plt.legend()
+plt.figure()
+plt.plot(range(1,predictorsTrain_std.shape[1]+1),errorTrainMeans,'b',range(1,predictorsTrain_std.shape[1]+1),errorTrainMeans,'ro', label='train error')
+plt.title(str(N) + '-Folds Cross Validation Train Error with PCA')
+plt.xlabel('number of components')
+plt.ylabel('error on train set')
+plt.legend()
 
-##plt.figure()
-#plt.plot(range(1,predictorsTrain_std.shape[1]+1),errorTestMeans,'b',range(1,predictorsTrain_std.shape[1]+1),errorTestMeans,'ro',label='test error')
-#plt.xlabel('number of components')
-#plt.ylabel('error on test set')
-#plt.title(str(N) + '-Folds Cross Validation Test Error with PCA')
-#plt.legend()
-##plt.show()
+plt.figure()
+plt.plot(range(1,predictorsTrain_std.shape[1]+1),errorTestMeans,'b',range(1,predictorsTrain_std.shape[1]+1),errorTestMeans,'ro',label='test error')
+plt.xlabel('number of components')
+plt.ylabel('error on test set')
+plt.title(str(N) + '-Folds Cross Validation Test Error with PCA')
+plt.legend()
+plt.show()
 
 
 print(' \n * * * * * * * * * * * CLUSTERING ANALYSIS * * * * * * * * * * *')
-
-
 
 WCSS= []
 
@@ -784,7 +772,7 @@ for i in range (1,data.shape[1]):
 
 plt.figure()
 plt.plot(range(1, data.shape[1]), WCSS,'-bx',label='distorsion(K)')
-plt.axvline(2,0,max(WCSS),ls=':',label='best K')
+plt.axvline(2,0,max(WCSS),ls=':',label='best K') #I saw "posthoc" by Elbow method that the good k is 2
 plt.title('Elbow Method: distortion as a function of K')
 plt.xlabel('Number of clusters')
 plt.ylabel('WCSS')
@@ -796,7 +784,7 @@ plt.show()
 km=KMeans(n_clusters=2)
 km.fit(data) #I am interested in the km.labels_:
 columnsToCluster=[data['Temp'], data['N_Customers'], pd.DataFrame({ 'Cluster_Label': km.labels_})]
-clusteredData = pd.concat(columnsToCluster, axis=1); #I create a Dataframe
+clusteredData = pd.concat(columnsToCluster, axis=1) # create a Dataframe with a column given by the labels
 
 plt.figure()
 plt.scatter(clusteredData['Temp'][clusteredData.Cluster_Label==1], clusteredData['N_Customers'][clusteredData.Cluster_Label==1],marker='.',s=0.8,label='First group') #First group
@@ -805,3 +793,4 @@ plt.xlabel('Temp')
 plt.ylabel('N_Customers')
 plt.legend()
 plt.show()
+#I saw "posthoc" by Elbow method that
