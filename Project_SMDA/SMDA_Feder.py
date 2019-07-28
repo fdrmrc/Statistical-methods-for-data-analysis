@@ -274,10 +274,12 @@ RSS1=np.sum((N_CustomersTrain-reg1.predict(predictorsTrain1))**2)
 
 RMSE1_Train=np.sqrt(((N_CustomersTrain-reg1.predict(predictorsTrain1)) **2).mean())
 RMSE1_Test=np.sqrt(((N_CustomersTest-reg1.predict(predictorsTest1)) **2).mean())
+TestErrorOLS=np.linalg.norm(N_CustomersTest-reg1.predict(predictorsTest1))
 
 print('\n Coefficients model: ', np.round(reg1.coef_,3),'\n Intercept model: ', np.round(reg1.intercept_,3)) #Magari printa coeff + str(num model) ,più carino !!
 print('\n Score: ', np.round(reg1.score(predictorsTrain1,N_CustomersTrain),4))
 print('\n RMSE on train: ', RMSE1_Train, '\n RMSE on test: ', RMSE1_Test)
+print('\n OLS Regression Test Error: ', TestErrorOLS)
 
 #Compute mean prediction error on Test data AND Base error rate on test data
 ynewpred=reg1.predict(predictorsTest1)
@@ -536,6 +538,7 @@ regRidge.fit(predictorsTrain_std,N_CustomersTrain)
 
 RMSERidge_Train=np.sqrt(((N_CustomersTrain-regRidge.predict(predictorsTrain_std)) **2).mean())
 RMSERidge_Test=np.sqrt(((N_CustomersTest-regRidge.predict(predictorsTest_std)) **2).mean())
+TestErrorRidge=np.linalg.norm(N_CustomersTest-regRidge.predict(predictorsTest_std))
 
 print('\n best_alpha by hand: ', best_alpha)
 
@@ -543,6 +546,7 @@ print('\n Ridge regression coefficients are:', regRidge.coef_)
 print('\n Ridge regression intercept is:', regRidge.intercept_)
 print('\n Ridge regression R^2 is:', regRidge.score(predictorsTrain_std,N_CustomersTrain))
 print('\n RMSE on train: ', RMSERidge_Train, '\n RMSE on test: ', RMSERidge_Test)
+print('\n Ridge Regression Test error: ', TestErrorRidge)
 # ** I can see that the RMSE_Ridge_Test is LOWER THAN RMSE1_Test (60 vs 64) **
 
 print('\n - - - - - - - - - - - - \n')
@@ -585,6 +589,7 @@ reg.fit(predictorsTrain_std,N_CustomersTrain)
 
 RMSELasso_Train=np.sqrt(((N_CustomersTrain-reg.predict(predictorsTrain_std)) **2).mean())
 RMSELasso_Test=np.sqrt(((N_CustomersTest-reg.predict(predictorsTest_std)) **2).mean())
+TestErrorLasso=np.linalg.norm(N_CustomersTest-reg.predict(predictorsTest_std))
 
 
 
@@ -610,9 +615,7 @@ print('\n Lasso regression intercept is: ',reg.intercept_)
 print('\n Lasso regression coefficients are: ',reg.coef_)
 print('\n Lasso regression R^2 is: ',reg.score(predictorsTrain_std,N_CustomersTrain))
 print('\n RMSE on train: ', RMSELasso_Train, '\n RMSE on test: ', RMSELasso_Test)
-
-
-
+print('\n Lasso Regression Test Error: ', TestErrorLasso)
 
 
 
@@ -698,9 +701,6 @@ print('R^2 for different number of components: ', scoreTrain)
 # ** I can see that with 4 components I have the biggest R^2, as I expected from the previous analysis. For example, in subset selection I already saw that
 #with 4 components I have a good R^2. Of course if I add other components it increases, but non in a significative way **
 
-
-
-
 #K-Fold cross validation on the entire dataset, K=10 !!
 N=10
 kf=KFold(n_splits=N)
@@ -782,7 +782,7 @@ plt.show()
 # ** I can see that the good k is k=2, by Elbow method **
 
 km=KMeans(n_clusters=2)
-km.fit(data) #I am interested in the km.labels_:
+km.fit(data) #I am interested in the km.labels_
 columnsToCluster=[data['Temp'], data['N_Customers'], pd.DataFrame({ 'Cluster_Label': km.labels_})]
 clusteredData = pd.concat(columnsToCluster, axis=1) # create a Dataframe with a column given by the labels
 
@@ -793,4 +793,3 @@ plt.xlabel('Temp')
 plt.ylabel('N_Customers')
 plt.legend()
 plt.show()
-#I saw "posthoc" by Elbow method that
