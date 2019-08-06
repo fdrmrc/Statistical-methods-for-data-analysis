@@ -1,10 +1,10 @@
-import numpy as np 
-import pandas as pd 
+import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
-import itertools 
+import itertools
 
 data=pd.read_csv('prostate.csv',sep=',',engine='python',index_col='train')
 
@@ -59,10 +59,10 @@ for k in range (1,dataTrain.shape[1]+1):
                                                 'features': subset,
                                                 'MAE': linreg_mae,
                                                 'RSS':RSS,
-                                                'R^2':Rsquare}]),sort=True)
+                                                'R^2':Rsquare}]))
 
 #sort values
-        
+
 #results_sort=results.sort_values('MAE')
 
 results_sort=results.sort_values('RSS')
@@ -104,30 +104,30 @@ plt.show()
 remaining_features=list(dataTrain.columns.values) #features to be included
 features=[] #start with empty model
 features_list=dict() #copy here features used
-RSS_list=[] 
+RSS_list=[]
 RSquare_list=[]
 for i in range (1,dataTrain.shape[1]+1):
     best_RSS=np.inf
-    
+
     for combo in itertools.combinations(remaining_features,1):
         reg=LinearRegression().fit(predictorTrain_std[list(combo) + features],lpsaTrain)
         pred=reg.predict(predictorTrain_std[list(combo) + features]) #prediction to compute RSS
         RSS=np.sum((lpsaTrain -pred)**2)
         Rsquare=reg.score(predictorTrain_std[list(combo) + features],lpsaTrain)
-        
+
         if RSS<best_RSS:
             best_RSS=RSS
             best_feature=combo[0] #choose current combo
             best_Rsquare=Rsquare
-        
+
     features.append(best_feature)
     remaining_features.remove(best_feature)
-    
+
     #save for the plot
     RSS_list.append(best_RSS)
     RSquare_list.append(best_Rsquare)
     features_list[i]=features.copy()
-    
+
 print('Forward stepwise selection RSS : {}'.format(np.round(best_RSS,3)))
 print('Forward stepwise selection R^2 : {}'.format(np.round(best_Rsquare,3)))
 
@@ -142,40 +142,44 @@ plt.show()
 
 
 #BACKWARD STEPWISE SELECTION
-features=list(dataTrain.columns.values) #start with full model
-remaining_features=[]
-features_list=dict() #copy here featured used
-RSS_list=[] 
-RSquare_list=[]
-for i in range (1,dataTrain.shape[1]+1):
-    best_RSS=np.inf
-    
-    for combo in itertools.combinations(features,1):
-        reg=LinearRegression().fit(predictorTrain_std[list(combo) + remaining_features],lpsaTrain)
-        pred=reg.predict(predictorTrain_std[list(combo) + remaining_features]) #prediction to compute RSS
-        RSS=np.sum((lpsaTrain -pred)**2)
-        Rsquare=reg.score(predictorTrain_std[list(combo) + remaining_features],lpsaTrain)
-        
-        if RSS<best_RSS:
-            best_RSS=RSS
-            best_feature=combo[0] #choose current combo
-            best_Rsquare=Rsquare
-        
-    features.remove(best_feature) #remove the variable that minimizes the RSS
-    remaining_features.append(best_feature)
-    
-    #save for the plot
-    RSS_list.append(best_RSS)
-    RSquare_list.append(best_Rsquare)
-    features_list[i]=features.copy()
-    
-print('Backward stepwise selection RSS : {}'.format(np.round(best_RSS,3)))
-print('Backward stepwise selection R^2 : {}'.format(np.round(best_Rsquare,3)))
 
-#plot: x=subset size, y=RSS
-plt.scatter(np.arange(1,dataTrain.shape[1] + 1),RSS_list)
-plt.xlabel('k: subset size')
+#Initialization variables
+Y = lpsaTrain
+X = predictorTrain_std
+k = X.shape[1]
+
+features = list(X.columns.values)
+reg = LinearRegression().fit(X[features],Y)
+pred=reg.predict(X[features])
+RSS=np.sum((Y -pred)**2)
+RSS_list, R_squared_list = [RSS], [] #Due to 1 indexing of the loop...
+
+for i in range(1,k):
+    worst_RSS = -np.inf
+
+    for combo in itertools.combinations(features,1):
+            features.remove(combo[0])
+            reg = LinearRegression().fit(X[features],Y)   #Store temp result
+            pred=reg.predict(X[features])
+            RSS=np.sum((Y -pred)**2)
+            if RSS > worst_RSS:
+                worst_feature = combo[0] #Combo è una lista di 1 elemento e quindi per accedere a quello devi fare combo[0]
+                            #se fai solo combo non riesce a capire che è una stringa ma la vede come una lista
+            features.append(combo[0])
+    #Updating variables for next loop
+    features.remove(worst_feature)
+    reg = LinearRegression().fit(X[features],Y)
+    pred=reg.predict(X[features])
+    RSS=np.sum((Y -pred)**2)
+    print(features)
+    #Saving values for plotting
+    RSS_list.append(RSS)
+    #R_squared_list.append(RSS)
+x=np.arange(k,0,-1)
+print(len(x))
+plt.plot(x,RSS_list[0:],'r-o')
+plt.title('Plot comparing number of used variables and related RSS')
+plt.xlabel('Subset size')
 plt.ylabel('RSS')
-plt.legend(' RSS ')
-plt.title('RSS - Backward stepwise selection')
 plt.show()
+
